@@ -1,5 +1,6 @@
 "use client";
 import { AnimatedContainer, AnimatedItem, Footer, Navbar } from "@/components";
+import CreateOrganisationModal from "@/components/CreateOrganisationModal";
 import OrganisationCard from "@/components/OrganisationCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +66,6 @@ const OrganisationsPage = () => {
       image: "/images/hero-image.png",
       category: "community",
     },
-
   ];
 
   useEffect(() => {
@@ -89,7 +89,12 @@ const OrganisationsPage = () => {
               <h2 className="text-text-primary text-lg md:text-xl  font-semibold">
                 Organisations
               </h2>
-              <Button variant="create" className="flex items-center gap-2">
+
+              <Button
+                variant="create"
+                className="flex items-center gap-2"
+                onClick={() => router.push("/organisations/create")}
+              >
                 <PlusIcon className="w-4 h-4" />
                 <span className="text-sm font-normal">Create Organisation</span>
               </Button>
@@ -113,7 +118,10 @@ const OrganisationsPage = () => {
               {/* organisation card with image, name, description */}
               {organisations.map((organisation) => {
                 return (
-                  <OrganisationCard key={organisation.id} organisation={organisation} />    
+                  <OrganisationCard
+                    key={organisation.id}
+                    organisation={organisation}
+                  />
                 );
               })}
             </div>

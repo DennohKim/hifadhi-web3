@@ -14,12 +14,16 @@
     "@heroicons/react": "^2.1.5",
     "@privy-io/react-auth": "^1.93.0",
     "@privy-io/server-auth": "^1.16.1",
+    "@privy-io/wagmi": "^0.2.12",
     "@radix-ui/react-accordion": "^1.2.1",
+    "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.1",
+    "@radix-ui/react-toast": "^1.2.2",
     "@solana/web3.js": "^1.95.4",
     "@tanstack/react-query": "^5.59.20",
+    "@uploadthing/react": "^7.1.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -37,7 +41,9 @@
     "sonner": "^1.7.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "viem": "^2.21.21"
+    "uploadthing": "^7.3.0",
+    "viem": "^2.21.21",
+    "wagmi": "^2.12.29"
   },
   "devDependencies": {
     "@types/node": "^20",

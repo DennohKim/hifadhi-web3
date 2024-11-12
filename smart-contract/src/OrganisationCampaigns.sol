@@ -9,6 +9,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
     struct Organization {
         string name;
         string imageUrl;
+        string description;
         address owner;
         uint256 orgId;      
         bool isActive;
@@ -44,7 +45,8 @@ contract OrganizationCampaigns is ReentrancyGuard {
         uint256 indexed orgId,
         string name,
         address indexed owner,
-        string imageUrl
+        string imageUrl,
+        string description
     );
     
     event CampaignCreated(
@@ -106,7 +108,8 @@ contract OrganizationCampaigns is ReentrancyGuard {
 
     function createOrganization(
         string memory _name,
-        string memory _imageUrl
+        string memory _imageUrl,
+        string memory _description
     ) external returns (uint256) {
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_imageUrl).length > 0, "Image URL cannot be empty");
@@ -116,6 +119,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
         Organization storage org = organizations[newOrgId];
         org.name = _name;
         org.imageUrl = _imageUrl;
+        org.description = _description;
         org.owner = msg.sender;
         org.orgId = newOrgId;
         org.isActive = true;
@@ -124,7 +128,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
         userOrganizations[msg.sender].push(newOrgId);
         memberOrganizations[msg.sender].push(newOrgId);
 
-        emit OrganizationCreated(newOrgId, _name, msg.sender, _imageUrl);
+        emit OrganizationCreated(newOrgId, _name, msg.sender, _imageUrl, _description);
         
         organizationCount++;
         return newOrgId;
@@ -247,6 +251,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
         returns (
             string memory name,
             string memory imageUrl,
+            string memory description,
             address owner,
             bool isActive,
             uint256 orgId
@@ -256,6 +261,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
         return (
             org.name,
             org.imageUrl,
+            org.description,
             org.owner,
             org.isActive,
             org.orgId

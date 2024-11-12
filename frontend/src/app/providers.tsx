@@ -3,6 +3,11 @@ import { Toaster } from "sonner";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { AddressProvider } from "@/context/AddressContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {WagmiProvider, createConfig} from '@privy-io/wagmi'; 
+import { baseSepolia } from 'viem/chains';
+import { http } from 'wagmi';
+
+
 
 if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
 	throw new Error("One or more environment variables are not set");
@@ -11,6 +16,14 @@ if (!process.env.NEXT_PUBLIC_PRIVY_APP_ID) {
 const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID as string;
 
 const queryClient = new QueryClient();
+
+// Configure wagmi
+const config = createConfig({
+	chains: [baseSepolia],
+	transports: {
+	  [baseSepolia.id]: http(),
+	},
+  });
 
 export default function Providers({ children }: { children: React.ReactNode }) {
 	return (
@@ -43,11 +56,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 				}}
 			>
 				<QueryClientProvider client={queryClient}>
+				<WagmiProvider config={config}>
 					<AddressProvider>
 						{children}
 
 						<Toaster position="bottom-right" richColors theme="light" />
-					</AddressProvider>
+						</AddressProvider>
+					</WagmiProvider>
 				</QueryClientProvider>
 			</PrivyProvider>
 		</>
