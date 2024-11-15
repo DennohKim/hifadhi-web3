@@ -28,15 +28,15 @@ const OrganisationPage = () => {
   const { writeContractAsync } = useJoinOrganization();
 
   console.log(orgId);
-  const { data: campaignIds } = useOrganizationCampaigns(orgId as string);
-  const { data: orgDetails, isLoading: isLoadingOrg } = useOrganizationDetails([
+  const { data: campaignIds, refetch: refetchCampaigns } = useOrganizationCampaigns(orgId as string);
+  const { data: orgDetails, isLoading: isLoadingOrg, refetch: refetchOrgDetails  } = useOrganizationDetails([
     Number(orgId),
   ]);
   const { wallets } = useWallets();
   const { setActiveWallet } = useSetActiveWallet();
   const [isJoining, setIsJoining] = useState(false);
 
-  const { data: isMember } = useReadContract({
+  const { data: isMember, refetch: refetchIsMember } = useReadContract({
     address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
     abi: CONTRACTS.ORGANIZATION_CAMPAIGNS.abi.abi as Abi,
     functionName: "isMemberOfOrganization",
@@ -119,6 +119,8 @@ const OrganisationPage = () => {
     } finally {
       setIsJoining(false);
       refetchIsMember();
+      refetchCampaigns();
+      refetchOrgDetails();
     }
   };
 
