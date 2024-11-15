@@ -213,6 +213,14 @@ export function DonateFunds({ onDepositSuccess }: DonateFundsProps) {
               >
                 {getButtonText()}
               </Button>
+              <Button
+                variant="secondary"
+                className="w-full"
+                type="submit"
+                disabled
+              >
+                Auto Contribute
+              </Button>
             </CardFooter>
           </form>
         </Card>

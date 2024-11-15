@@ -16,28 +16,28 @@ import { Input } from "@/components/ui/input";
 import { campaigns } from "@/lib/mocks";
 import { shortenAddress } from "@/lib/utils";
 import { usePrivy } from "@privy-io/react-auth";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { CopyIcon, PlusIcon, SearchIcon } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { useCopyToClipboard } from "@/hooks/hooks";
+import { CheckmarkIcon } from "@/components/ImageAssets";
 
 const CampaignPage = () => {
   const router = useRouter();
   const { ready, authenticated } = usePrivy();
   const params = useParams();
   const campaignId = params.campaignId;
-  console.log(campaignId);
-
-
+  const { copiedStates, copyToClipboard } = useCopyToClipboard();
 
   // Add error and loading states
   const {
     data: campaignDetailsResults,
     isError,
     isLoading,
-    refetch
+    refetch,
   } = useCampaignDetails(
-    campaignId ? [BigInt(campaignId as string)] : undefined, 
+    campaignId ? [BigInt(campaignId as string)] : undefined
   );
 
   console.log(campaignDetailsResults);
@@ -71,29 +71,36 @@ const CampaignPage = () => {
     };
   }, [campaignDetailsResults]);
 
-   // Handler for successful deposits
-   const handleDepositSuccess = React.useCallback(() => {
+  // Handler for successful deposits
+  const handleDepositSuccess = React.useCallback(() => {
     // Refetch campaign details to get updated totalDeposits
     refetch();
   }, [refetch]);
 
   const stats = [
-    { 
-      id: 1, 
-      name: "Total Donations", 
-      value: campaign ? 
-        `$${(Number(campaign.totalDeposits) / 10**6).toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        })}` : 
-        '$0.00'
+    {
+      id: 1,
+      name: "Total Donations",
+      value: campaign
+        ? `$${(Number(campaign.totalDeposits) / 10 ** 6).toLocaleString(
+            "en-US",
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }
+          )}`
+        : "$0.00",
     },
-    { 
-      id: 2, 
-      name: "Contributors", 
-      value: "30" // This would need to be updated with actual contributor count
+    {
+      id: 2,
+      name: "Contributors",
+      value: "30", // This would need to be updated with actual contributor count
     },
   ];
+
+  const handleCopyAddress = () => {
+    copyToClipboard("campaignAddress", campaign?.walletAddress || "");
+  };
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -116,7 +123,7 @@ const CampaignPage = () => {
                           {campaign.name}
                         </h1>
                         <div className="flex flex-col justify-start items-start space-y-3 w-full">
-                          <div className="w-full h-96">
+                          <div className="w-full h-72">
                             <Image
                               src={campaign.image}
                               alt={campaign.name}
@@ -125,12 +132,32 @@ const CampaignPage = () => {
                               className="w-full h-full object-cover rounded-lg"
                             />
                           </div>
-                          <p className="text-sm text-gray-500">
-                            {shortenAddress(campaign.walletAddress)}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {campaign.description}
-                          </p>
+                          <div className="flex flex-col justify-start items-start space-y-3 w-full">
+                            <p className="text-sm font-semibold">
+                              Campaign Multisig Address
+                            </p>
+                            <button
+                              type="button"
+                              onClick={handleCopyAddress}
+                              className="flex items-center gap-6 text-sm bg-muted rounded-lg px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+                            >
+                              <span>{campaign.walletAddress}</span>
+                              {copiedStates.campaignAddress ? (
+                                <CheckmarkIcon className="size-4 text-primary-blue" />
+                              ) : (
+                                <CopyIcon className="size-4 text-text-secondary hover:text-primary-blue transition-colors" />
+                              )}
+                            </button>
+                          </div>
+
+                          <div className="flex flex-col justify-start items-start space-y-3 w-full">
+                            <p className="text-sm font-semibold">
+                              Campaign Description
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {campaign.description}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>

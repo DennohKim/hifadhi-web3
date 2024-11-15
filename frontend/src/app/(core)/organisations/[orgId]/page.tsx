@@ -118,6 +118,7 @@ const OrganisationPage = () => {
       });
     } finally {
       setIsJoining(false);
+      refetchIsMember();
     }
   };
 
@@ -169,9 +170,7 @@ const OrganisationPage = () => {
                         variant="create"
                         className="flex items-center gap-2"
                         onClick={() =>
-                          router.push(
-                            `/organisations/${orgId}/create_campaign`
-                          )
+                          router.push(`/organisations/${orgId}/create_campaign`)
                         }
                       >
                         <PlusIcon className="w-4 h-4" />
@@ -226,7 +225,11 @@ const OrganisationPage = () => {
                             <p className="text-sm text-gray-500">
                               Join Organisation to make donations
                             </p>
-                            <Button variant="secondary">
+                            <Button
+                              variant="secondary"
+                              onClick={handleJoinOrganization}
+                              disabled={isJoining}
+                            >
                               Join Organisation
                             </Button>
                           </>

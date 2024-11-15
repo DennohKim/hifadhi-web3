@@ -21,3 +21,24 @@ export function useCampaignDetails(campaignIds: bigint[] | undefined) {
     })) ?? [],
   });
 }
+
+export function useCampaignCount() {
+    return useReadContract({
+      address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
+      abi: CONTRACTS.ORGANIZATION_CAMPAIGNS.abi.abi,
+      functionName: 'getCampaignCount',
+    });
+  }
+  
+  export function useAllCampaigns() {
+    const { data: campaignCount } = useCampaignCount();
+    
+    return useReadContracts({
+      contracts: campaignCount ? Array.from({ length: Number(campaignCount) }, (_, i) => ({
+        address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
+        abi: CONTRACTS.ORGANIZATION_CAMPAIGNS.abi.abi as Abi,
+        functionName: 'getCampaignDetails',
+        args: [BigInt(i)],
+      })) : [],
+    });
+  }

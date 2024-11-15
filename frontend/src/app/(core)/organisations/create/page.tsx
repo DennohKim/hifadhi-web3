@@ -25,6 +25,8 @@ import { Abi } from "viem";
 import { usePrivy } from "@privy-io/react-auth";
 import { useSetActiveWallet } from "@privy-io/wagmi";
 import { useWallets } from "@privy-io/react-auth";
+import { useAllOrganizations } from "@/actions/organisation";
+import { useAllCampaigns, useCampaignCount } from "@/actions/campaigns";
 
 type FormData = {
   name: string;
@@ -52,6 +54,11 @@ export default function CreateOrganisationModal() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>("");
+
+    const { refetch: refetchOrgDetails } = useAllOrganizations();
+    const {  refetch: refetchCampaignCount } = useCampaignCount();
+  const {  refetch: refetchCampaigns } = useAllCampaigns();
+  
 
   // Watch form values and debounce them
   const watchedName = watch("name");
@@ -102,7 +109,7 @@ export default function CreateOrganisationModal() {
         description: `Transaction hash: ${hash}`,
       });
 
-      // router.push("/organisations")
+      router.push("/organisations")
     } catch (error) {
       console.error("Contract error:", error);
       toast.error("Failed to create organization", {
@@ -110,6 +117,9 @@ export default function CreateOrganisationModal() {
       });
     } finally {
       setIsLoading(false);
+      refetchOrgDetails();
+      refetchCampaignCount();
+      refetchCampaigns();
     }
   };
 
