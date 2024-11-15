@@ -1,48 +1,56 @@
-'use server'
+import { CONTRACTS } from "@/lib/contracts/config";
+import { useReadContract, useReadContracts, useWriteContract } from "wagmi";
+import { type Abi } from "viem";
 
-
-interface OrganisationState {
-  name: string
-  imageUrl: string
-  description: string
-  status?: number
-  message?: string
+export function useOrganizationCount() {
+  return useReadContract({
+    address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
+    abi: CONTRACTS.ORGANIZATION_CAMPAIGNS.abi.abi as Abi,
+    functionName: 'getOrganizationCount',
+  });
 }
 
-export async function createOrganisation(
-  prevState: OrganisationState,
-  formData: FormData
-): Promise<OrganisationState> {
-  try {
-    // Get form data
-    const name = formData.get('name') as string
-    const description = formData.get('description') as string
-    const imageUrl = formData.get('imageUrl') as string
 
-    // Validate form data
-    if (!name || !description || !imageUrl) {
-      return {
-        ...prevState,
-        status: 400,
-        message: 'All fields are required'
-      }
+export function useUserOrganizations(address?: string) {
+  return useReadContract({
+    address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
+    abi: CONTRACTS.ORGANIZATION_CAMPAIGNS.abi.abi as Abi,
+    functionName: 'getUserOrganizations',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
     }
+  });
+}
 
-    // Return success state to trigger smart contract interaction
-    return {
-      name,
-      description,
-      imageUrl,
-      status: 0, // Status 0 indicates success and triggers smart contract interaction
-      message: 'Form validated successfully'
+export function useOrganizationDetails(orgIds?: number[] | undefined) {
+  return useReadContracts({
+    contracts: orgIds?.map(id => ({
+      address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
+      abi: CONTRACTS.ORGANIZATION_CAMPAIGNS.abi.abi as Abi,
+      functionName: 'getOrganizationDetails',
+      args: [BigInt(id)],
+    })) ?? [],
+    query: {
+      enabled: !!orgIds?.length,
     }
+  });
+}
 
-  } catch (error) {
-    console.error('Error creating organisation:', error)
-    return {
-      ...prevState,
-      status: 500,
-      message: 'Something went wrong creating the organisation'
-    }
-  }
+export function useAllOrganizations() {
+  const { data: count } = useOrganizationCount();
+  
+  const orgIds = count ? Array.from({ length: Number(count) }, (_, i) => i) : undefined;
+  
+  return useOrganizationDetails(orgIds);
+}
+
+export function useJoinOrganization() {
+  return useWriteContract({
+    mutation: {
+      onError: (error) => {
+        console.error('Error joining organization:', error);
+      },
+    },
+  });
 }

@@ -160,3 +160,28 @@ export const getExplorerLink = (
 
 	return explorers[network] ? `${explorers[network]}${txHash}` : undefined;
 };
+
+/**
+ * Formats a number with commas and removes trailing zeros.
+ * @param value - The number to format.
+ * @returns The formatted number with commas and no trailing zeros.
+ */
+export const formatNumberWithCommas = (value: string | number): string => {
+	// Convert to string and handle null/undefined
+	const numStr = String(value || '0');
+	
+	// Split number into integer and decimal parts
+	const [integerPart, decimalPart] = numStr.split('.');
+	
+	// Add commas to integer part
+	const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	
+	// Combine with decimal part if it exists
+	if (decimalPart !== undefined) {
+	  // Remove trailing zeros from decimal part
+	  const cleanDecimal = decimalPart.replace(/0+$/, '');
+	  return cleanDecimal ? `${formattedInteger}.${cleanDecimal}` : formattedInteger;
+	}
+	
+	return formattedInteger;
+  };

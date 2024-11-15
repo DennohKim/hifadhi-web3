@@ -8,13 +8,15 @@ import { usePrivy } from "@privy-io/react-auth";
 // import { AnimatePresence, motion } from "framer-motion";
 
 import { shortenAddress } from "@/lib/utils";
-import { AnimatedContainer, AnimatedItem, Footer, Navbar } from "@/components";
+import { AnimatedContainer, AnimatedItem, Footer } from "@/components";
 import { ArrowRightIcon, BannerIcon } from "@/components/ImageAssets";
 // import type {
 // 	TransactionHistoryResponse,
 // 	TransactionsListResponse,
 // } from "@/lib/types";
 import { useAddressContext } from "@/context/AddressContext";
+import { useOrganizationCount } from "@/actions/organisation";
+
 
 const Card = ({
   title,
@@ -33,12 +35,13 @@ export default function Dashboard() {
   const router = useRouter();
   const { ready, user, authenticated } = usePrivy();
   const { basename, avatar } = useAddressContext();
+  const { data: organizationCount, isError, isLoading } = useOrganizationCount();
 
   const cardData = [
     {
       id: 1,
       title: "Organisations",
-      content: 0,
+      content: isLoading ? "Loading..." : isError ? "Error" : Number(organizationCount || 0),
     },
     {
       id: 2,
@@ -60,7 +63,6 @@ export default function Dashboard() {
 
   return (
     <>
-      <Navbar />
 
       <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen">
         <div className="flex-grow space-y-6">

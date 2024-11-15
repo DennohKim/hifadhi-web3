@@ -2,7 +2,7 @@
 
 import { Navbar } from "@/components";
 
-export default function OrganisationsLayout({
+export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

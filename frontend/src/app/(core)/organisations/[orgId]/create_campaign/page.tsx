@@ -4,23 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CONTRACTS } from "@/lib/contracts/config";
-import { useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-
-import {
-  useWriteContract,
-  useSimulateContract,
-  useWaitForTransactionReceipt,
-} from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import Image from "next/image";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { AnimatedContainer } from "@/components";
 import { UploadButton, UploadDropzone } from "@/lib/uploadthing";
-import Error from "next/error";
 import { Abi } from "viem";
 import { usePrivy } from "@privy-io/react-auth";
 import { useSetActiveWallet } from "@privy-io/wagmi";
@@ -29,10 +22,14 @@ import { useWallets } from "@privy-io/react-auth";
 type FormData = {
   name: string;
   description: string;
+  walletAddress: string;
 };
 
-export default function CreateOrganisationModal() {
+export default function CreateCampaignPage() {
   const router = useRouter();
+  const params = useParams();
+  const orgId = params.orgId;
+
   const { writeContractAsync, data: hash } = useWriteContract();
   const { ready, authenticated } = usePrivy();
   const { wallets } = useWallets();
@@ -47,6 +44,7 @@ export default function CreateOrganisationModal() {
     defaultValues: {
       name: "",
       description: "",
+      walletAddress: "",
     },
   });
 
@@ -56,15 +54,16 @@ export default function CreateOrganisationModal() {
   // Watch form values and debounce them
   const watchedName = watch("name");
   const watchedDescription = watch("description");
+  const watchedWalletAddress = watch("walletAddress");
   const debouncedName = useDebounce(watchedName, 300);
   const debouncedDescription = useDebounce(watchedDescription, 300);
+  const debouncedWalletAddress = useDebounce(watchedWalletAddress, 300);
 
   const contractConfig = {
     address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
     abi: CONTRACTS.ORGANIZATION_CAMPAIGNS.abi.abi as Abi,
-    functionName: "createOrganization",
+    functionName: "createCampaign",
   } as const;
-
 
   const { isLoading: isWaiting, isSuccess } = useWaitForTransactionReceipt({
     hash,
@@ -72,7 +71,11 @@ export default function CreateOrganisationModal() {
 
   const isSubmitting = isLoading || isWaiting;
   const isSubmitDisabled =
-    isSubmitting || !debouncedName || !debouncedDescription || !imageUrl;
+    isSubmitting ||
+    !debouncedName ||
+    !debouncedDescription ||
+    !debouncedWalletAddress ||
+    !imageUrl;
 
   const onSubmit = async (data: FormData) => {
     if (!authenticated) {
@@ -93,19 +96,26 @@ export default function CreateOrganisationModal() {
         await setActiveWallet(activeWallet);
       }
 
-  // Pass the arguments to writeContractAsync
-  const hash = await writeContractAsync({
+      // Pass the arguments to writeContractAsync
+      const hash = await writeContractAsync({
         ...contractConfig,
-        args: [debouncedName, imageUrl, debouncedDescription],
+        args: [
+          BigInt(orgId as string),
+          debouncedName,
+          debouncedDescription,
+          imageUrl,
+          debouncedWalletAddress as `0x${string}`,
+        ],
       });
+
       toast.success("Transaction submitted", {
         description: `Transaction hash: ${hash}`,
       });
 
-      // router.push("/organisations")
+      router.push(`/organisations/orgId=${orgId}`);
     } catch (error) {
       console.error("Contract error:", error);
-      toast.error("Failed to create organization", {
+      toast.error("Failed to create campaign", {
         description: error instanceof Error ? error.message : String(error),
       });
     } finally {
@@ -126,47 +136,60 @@ export default function CreateOrganisationModal() {
 
           <div>
             <h1 className="text-text-primary text-lg md:text-xl font-semibold">
-              Create Organisation
+              Create Campaign
             </h1>
           </div>
         </div>
-        <div className="relative flex-col gap-8 md:flex space-y-4 w-full">
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="grid grid-cols-1 max-w-7xl space-y-4"
-          >
-            <div className="space-y-4">
-              <div className="grid gap-3">
-                <Label htmlFor="name">Organisation Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Web3clubs"
-                  {...register("name", { required: true })}
-                />
-                {errors.name && (
-                  <span className="text-red-500">This field is required</span>
-                )}
-              </div>
 
-              <div className="grid gap-3">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Description"
-                  {...register("description", { required: true })}
-                />
-                {errors.description && (
-                  <span className="text-red-500">This field is required</span>
-                )}
-              </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-4">
+            <div className="grid gap-3">
+              <Label htmlFor="name">Campaign Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Campaign Name"
+                {...register("name", { required: true })}
+              />
+              {errors.name && (
+                <span className="text-red-500">This field is required</span>
+              )}
             </div>
 
-            <div className="grid gap-3 h-full">
-              <Label htmlFor="imageUrl">Organization Image</Label>
-              <div className="flex flex-col gap-y-2 ">
-                <div className="flex flex-col gap-4">
-                  <UploadDropzone
+            <div className="grid gap-3">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Campaign Description"
+                {...register("description", { required: true })}
+              />
+              {errors.description && (
+                <span className="text-red-500">This field is required</span>
+              )}
+            </div>
+
+            <div className="grid gap-3">
+              <Label htmlFor="walletAddress">Wallet Address</Label>
+              <Input
+                id="walletAddress"
+                type="text"
+                placeholder="0x..."
+                {...register("walletAddress", {
+                  required: true,
+                  pattern: /^0x[a-fA-F0-9]{40}$/,
+                })}
+              />
+              {errors.walletAddress?.type === "required" && (
+                <span className="text-red-500">This field is required</span>
+              )}
+              {errors.walletAddress?.type === "pattern" && (
+                <span className="text-red-500">Invalid Ethereum address</span>
+              )}
+            </div>
+
+            <div className="grid gap-3">
+              <Label htmlFor="imageUrl">Campaign Image</Label>
+              <UploadDropzone
                     endpoint="videoAndImage"
                     onClientUploadComplete={(res) => {
                       if (res?.[0]) setImageUrl(res[0].url);
@@ -213,40 +236,38 @@ export default function CreateOrganisationModal() {
                     }}
                   />
 
-                  {imageUrl && (
-                    <div className="mt-4">
-                      <h3 className="text-sm font-medium text-slate-900">
-                        Uploaded Image:
-                      </h3>
-                      <Image
-                        src={imageUrl}
-                        alt="Uploaded"
-                        width={300}
-                        height={300}
-                        className="mt-2 max-w-[300px] rounded-lg border border-slate-200"
-                      />
-                    </div>
-                  )}
+              {imageUrl && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium text-slate-900">
+                    Uploaded Image:
+                  </h3>
+                  <Image
+                    src={imageUrl}
+                    alt="Uploaded"
+                    width={300}
+                    height={300}
+                    className="mt-2 max-w-[300px] rounded-lg border border-slate-200"
+                  />
                 </div>
-              </div>
-
-              <div className="flex items-end justify-end">
-                <Button
-                  disabled={isSubmitDisabled}
-                  size="lg"
-                  className="w-fit"
-                  variant="create"
-                  type="submit"
-                >
-                  {isSubmitting && (
-                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isWaiting ? "Creating..." : "Create Organization"}
-                </Button>
-              </div>
+              )}
             </div>
-          </form>
-        </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              disabled={isSubmitDisabled}
+              size="lg"
+              className="w-fit"
+              variant="create"
+              type="submit"
+            >
+              {isSubmitting && (
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isWaiting ? "Creating..." : "Create Campaign"}
+            </Button>
+          </div>
+        </form>
       </div>
     </AnimatedContainer>
   );

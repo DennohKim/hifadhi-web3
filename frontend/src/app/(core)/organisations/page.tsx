@@ -1,12 +1,11 @@
 "use client";
-import { AnimatedContainer, AnimatedItem, Footer, Navbar } from "@/components";
-import CreateOrganisationModal from "@/components/CreateOrganisationModal";
+import { useAllOrganizations, useOrganizationCount,  useOrganizationDetails,  useUserOrganizations } from "@/actions/organisation";
+import { AnimatedContainer, AnimatedItem, Footer } from "@/components";
 import OrganisationCard from "@/components/OrganisationCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePrivy } from "@privy-io/react-auth";
 import { PlusIcon, SearchIcon } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
@@ -24,13 +23,46 @@ const Card = ({
 );
 const OrganisationsPage = () => {
   const router = useRouter();
-  const { ready, authenticated } = usePrivy();
+  const { ready, authenticated, user } = usePrivy();
+  const { data: organizationCount, isError, isLoading: isLoadingCount } = useOrganizationCount();
 
+  // Get user's organizations
+  const { data: userOrgIds } = useUserOrganizations(user?.wallet?.address);
+
+  console.log(userOrgIds);
+
+   // Get details for each organization
+  //  const { data: orgDetails, isLoading: isLoadingDetails } = useOrganizationDetails(
+  //   userOrgIds ? Array.from(userOrgIds).map(Number) : undefined
+  // );
+
+  
+  // Get all organizations instead of just user's organizations
+  const { data: orgDetails, isLoading: isLoadingDetails } = useAllOrganizations();
+
+
+  const newOrganisations = orgDetails?.map((result, index) => {
+    if (result.status === 'success') {
+      const [name, imageUrl, description, owner, isActive, orgId] = result.result;
+      return {
+        id: Number(orgId),
+        name,
+        description,
+        image: imageUrl,
+        category: "community", // You might want to add this to your smart contract
+        owner,
+        isActive
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
+  
   const cardData = [
     {
       id: 1,
       title: "Total Organisations",
-      content: 0,
+      content: isLoadingCount ? "Loading..." : isError ? "Error" : Number(organizationCount || 0),
     },
     {
       id: 2,
@@ -41,30 +73,6 @@ const OrganisationsPage = () => {
       id: 3,
       title: "Total Funds Raised",
       content: 0,
-    },
-  ];
-
-  const organisations = [
-    {
-      id: 1,
-      name: "Organisation 1",
-      description: "Organisation Description",
-      image: "/images/hero-image.png",
-      category: "community",
-    },
-    {
-      id: 2,
-      name: "Organisation 2",
-      description: "Organisation Description",
-      image: "/images/hero-image.png",
-      category: "campaign",
-    },
-    {
-      id: 3,
-      name: "Organisation 3",
-      description: "Organisation Description",
-      image: "/images/hero-image.png",
-      category: "community",
     },
   ];
 
@@ -116,11 +124,13 @@ const OrganisationsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* card */}
               {/* organisation card with image, name, description */}
-              {organisations.map((organisation) => {
+
+               { newOrganisations && newOrganisations.map((organisation) => {
                 return (
                   <OrganisationCard
-                    key={organisation.id}
-                    organisation={organisation}
+                    key={organisation?.id}
+                    // organisation={organisation}
+                    {...organisation}
                   />
                 );
               })}

@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { useLogin, usePrivy } from "@privy-io/react-auth";
 import { AnimatedContainer, AnimatedItem, Preloader } from "@/components";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -23,6 +24,12 @@ export default function Home() {
       router.push("/dashboard");
     },
   });
+
+  useEffect(() => {
+    if (ready && !authenticated) {
+      router.push("/");
+    }
+  }, [ready, authenticated, router]);
 
   if (showPreloader) return <Preloader isLoading={showPreloader} />;
 

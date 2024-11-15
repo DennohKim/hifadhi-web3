@@ -9,6 +9,13 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+/smart-contracts/build
+/smart-contracts/node_modules
+/smart-contracts/cache
+/smart-contracts/broadcast
+/smart-contracts/out
+
+
 
 # testing
 /coverage
