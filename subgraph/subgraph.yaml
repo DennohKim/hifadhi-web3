@@ -16,10 +16,10 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - CampaignCreated
-        - DepositMade
-        - MemberJoined
-        - OrganizationCreated
+        - Organization
+        - Campaign
+        - Member
+        - Deposit
       abis:
         - name: OrganizationCampaigns
           file: ./abis/OrganizationCampaigns.json
