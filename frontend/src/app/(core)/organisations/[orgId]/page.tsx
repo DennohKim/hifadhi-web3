@@ -132,7 +132,7 @@ const OrganisationPage = () => {
 
   return (
     <>
-      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen">
+      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen font-jakarta">
         {isLoadingOrg ? (
           <div className="flex justify-between sm:flex-row space-y-4 sm:space-y-0 flex-col pb-4">
             <div className="h-8 w-48 bg-gray-200 rounded-md animate-pulse" />
@@ -145,7 +145,7 @@ const OrganisationPage = () => {
           <div className="flex-grow space-y-6">
             <AnimatedItem>
               <div className="flex justify-between sm:flex-row space-y-4 sm:space-y-0 flex-col pb-4">
-                <h2 className="text-text-primary text-lg md:text-xl font-semibold">
+                <h2 className="text-text-primary text-lg md:text-xl font-bold">
                   Organisation Campaigns
                 </h2>
                 <div className="flex justify-between gap-4">

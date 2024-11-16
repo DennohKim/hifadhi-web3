@@ -124,7 +124,7 @@ export default function CreateCampaignPage() {
   };
 
   return (
-    <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen py-10">
+    <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen py-10 font-jakarta">
       <div className="min-w-full">
         <div className="flex flex-col gap-4 pb-6">
           <button

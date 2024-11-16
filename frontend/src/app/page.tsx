@@ -114,10 +114,10 @@ export default function Home() {
 
           <AnimatedContainer>
             <div className="text-center">
-              <h1 className="text-balance text-4xl font-semibold tracking-tight text-gray-900 sm:text-6xl">
+              <h1 className="text-balance text-4xl tracking-tight text-gray-900 sm:text-6xl font-cabinet font-extrabold">
                 Transform Your Savings Goals into Reality with VunaVault{" "}
               </h1>
-              <p className="mt-8 text-pretty text-md font-medium text-gray-500 sm:text-xl/8">
+              <p className="mt-8 text-pretty text-md font-medium text-gray-500 sm:text-xl/8 font-jakarta">
                 Set personalized savings goals, automate your contributions, and
                 watch your savings grow through Aave lending pools while Gelato
                 handles all the automation.

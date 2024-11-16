@@ -124,7 +124,7 @@ export default function CreateOrganisationModal() {
   };
 
   return (
-    <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen py-10">
+    <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen py-10 font-jakarta">
       <div className="min-w-full">
         <div className="flex flex-col gap-4 pb-6">
           <button
@@ -135,7 +135,7 @@ export default function CreateOrganisationModal() {
           </button>
 
           <div>
-            <h1 className="text-text-primary text-lg md:text-xl font-semibold">
+            <h1 className="text-text-primary text-lg md:text-xl font-bold">
               Create Organisation
             </h1>
           </div>
@@ -218,7 +218,7 @@ export default function CreateOrganisationModal() {
                       console.log("upload begin");
                     }}
                     appearance={{
-                      button: "bg-blue-500 hover:bg-blue-600 text-white px-6",
+                      button: "bg-blue-500 hover:bg-blue-600 text-white text-sm px-6",
                       allowedContent: "text-slate-500 text-sm",
                     }}
                   />

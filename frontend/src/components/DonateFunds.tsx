@@ -20,12 +20,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { formatUnits, parseUnits } from "viem";
 import {
-  useAccount,
   useBalance,
   useWriteContract,
   useWaitForTransactionReceipt,
   usePublicClient,
 } from "wagmi";
+import { useWallets } from '@privy-io/react-auth'; // Add this import
+
 
 type FormData = {
   amount: string;
@@ -38,7 +39,10 @@ interface DonateFundsProps {
 }
 
 export function DonateFunds({ onDepositSuccess }: DonateFundsProps) {
-  const { address } = useAccount();
+  const { wallets } = useWallets();
+  const activeWallet = wallets[0]; // Get the first connected wallet
+  const address = activeWallet?.address;
+  console.log(address);
   const publicClient = usePublicClient();
   const campaignId = useParams().campaignId;
   const [isApproving, setIsApproving] = useState(false);
@@ -47,7 +51,7 @@ export function DonateFunds({ onDepositSuccess }: DonateFundsProps) {
 
   // Get USDC balance
   const { data: balance, isLoading: isBalanceLoading, refetch: refetchBalance } = useBalance({
-    address,
+    address: address as `0x${string}`,
     token: CONTRACTS.USDC.address,
   });
 

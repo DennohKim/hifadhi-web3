@@ -122,7 +122,7 @@ const OrganisationsPage = () => {
 
   return (
     <>
-      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen">
+      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen font-jakarta">
         <div className="flex-grow space-y-6">
           <AnimatedItem className="flex flex-col sm:flex-row sm:items-center justify-center gap-4">
             {isLoadingCount || !campaignCount || !totalFundsRaised ? (
@@ -139,7 +139,7 @@ const OrganisationsPage = () => {
           </AnimatedItem>
 
           <AnimatedItem>
-            <div className="flex justify-between items-center pb-4">
+            <div className="flex justify-between items-start pb-4">
               <h2 className="text-text-primary text-lg md:text-xl  font-semibold">
                 Organisations
               </h2>
@@ -167,7 +167,7 @@ const OrganisationsPage = () => {
 
           {/* organisation cards */}
           <AnimatedItem>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {/* card */}
               {/* organisation card with image, name, description */}
 

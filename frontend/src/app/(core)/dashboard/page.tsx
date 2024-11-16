@@ -64,7 +64,7 @@ export default function Dashboard() {
   return (
     <>
 
-      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen">
+      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen font-jakarta">
         <div className="flex-grow space-y-6">
           {user?.wallet?.walletClientType !== "privy" &&
             basename &&

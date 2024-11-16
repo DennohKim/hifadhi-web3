@@ -51,6 +51,13 @@ const isActiveRoute = (pathname: string, href: string) => {
   const handleLogout = async () => {
     setIsSettingsDropdownOpen(false);
     setIsLoggingOut(true);
+
+      // Clear Privy-specific items from localStorage
+  localStorage.removeItem('privy:token');
+  localStorage.removeItem('privy:refresh_token');
+  localStorage.removeItem('privy:caid');
+  localStorage.removeItem('privy:connections');
+
     await logout();
   };
 
@@ -63,7 +70,7 @@ const isActiveRoute = (pathname: string, href: string) => {
   if (isLoggingOut) return <Preloader isLoading={isLoggingOut} />;
 
   return (
-    <header className="fixed left-0 top-0 z-20 w-full bg-white transition-all">
+    <header className="fixed left-0 top-0 z-20 w-full bg-white transition-all font-jakarta">
       <nav
         aria-label="Global"
         className="container mx-auto max-w-screen-md flex items-center justify-between p-4 text-text-primary"
@@ -98,7 +105,7 @@ const isActiveRoute = (pathname: string, href: string) => {
             href={item.href}
             className={classNames(
               "text-sm/6 font-normal",
-              isActiveRoute(pathname, item.href) ? "text-[#0065F5]" : "text-gray-900"
+              isActiveRoute(pathname, item.href) ? "text-[#0065F5] font-semibold" : "text-gray-900"
             )}
           >
             {item.name}

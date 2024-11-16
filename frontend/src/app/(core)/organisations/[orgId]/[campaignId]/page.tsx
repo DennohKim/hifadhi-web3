@@ -83,11 +83,7 @@ const CampaignPage = () => {
       name: "Total Donations",
       value: campaign
         ? `$${(Number(campaign.totalDeposits) / 10 ** 6).toLocaleString(
-            "en-US",
-            {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }
+            "en-US"
           )}`
         : "$0.00",
     },
@@ -110,7 +106,7 @@ const CampaignPage = () => {
 
   return (
     <>
-      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen">
+      <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen font-jakarta">
         <div className="flex-grow space-y-6">
           <AnimatedItem>
             <div className="container pt-6 mx-auto h-full">
@@ -119,9 +115,6 @@ const CampaignPage = () => {
                   <div className="flex flex-wrap">
                     <div className="md:w-3/5 w-full pb-6 md:pb-0 md:pr-6">
                       <div className="">
-                        <h1 className="text-2xl font-bold pb-4">
-                          {campaign.name}
-                        </h1>
                         <div className="flex flex-col justify-start items-start space-y-3 w-full">
                           <div className="w-full h-72">
                             <Image
@@ -132,6 +125,10 @@ const CampaignPage = () => {
                               className="w-full h-full object-cover rounded-lg"
                             />
                           </div>
+                          <div className="flex flex-col justify-start items-start space-y-3 w-full">
+                          <h1 className="text-2xl font-bold">
+                            {campaign.name}
+                          </h1>
                           <div className="flex flex-col justify-start items-start space-y-3 w-full">
                             <p className="text-sm font-semibold">
                               Campaign Multisig Address
@@ -158,6 +155,7 @@ const CampaignPage = () => {
                               {campaign.description}
                             </p>
                           </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -165,11 +163,11 @@ const CampaignPage = () => {
                       {/* Remove class [ h-24 ] when adding a card block */}
                       {/* Remove class [ border-gray-300  dark:border-gray-700 border-dashed border-2 ] to remove dotted border */}
                       <div className="">
-                        <dl className="grid grid-cols-2 gap-4 rounded-lg bg-muted mb-4 ">
+                        <dl className="grid grid-cols-2 gap-4 rounded-lg bg-muted mb-4 text-sm">
                           {stats.map((stat) => (
                             <div
                               key={stat.id}
-                              className="flex flex-col gap-1 px-4 py-2"
+                              className="flex flex-col gap-1 px-4 py-4 space-y-1 "
                             >
                               <dt className="text-sm text-muted-foreground">
                                 {stat.name}
