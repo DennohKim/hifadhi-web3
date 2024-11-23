@@ -22,6 +22,9 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useCopyToClipboard } from "@/hooks/hooks";
 import { CheckmarkIcon } from "@/components/ImageAssets";
+import { useCampaignDeposits } from "@/hooks/useCampaignDeposit";
+import { columns } from "@/components/transactions/deposits/components/columns";
+import { DataTable } from "@/components/transactions/deposits/components/data-table";
 
 const CampaignPage = () => {
   const router = useRouter();
@@ -30,6 +33,13 @@ const CampaignPage = () => {
   const campaignId = params.campaignId;
   const { copiedStates, copyToClipboard } = useCopyToClipboard();
 
+  const {
+    data: allDepositsData,
+    loading,
+    error,
+  } = useCampaignDeposits(campaignId as string);
+
+  console.log(allDepositsData);
   // Add error and loading states
   const {
     data: campaignDetailsResults,
@@ -77,22 +87,28 @@ const CampaignPage = () => {
     refetch();
   }, [refetch]);
 
-  const stats = [
-    {
-      id: 1,
-      name: "Total Donations",
-      value: campaign
-        ? `$${(Number(campaign.totalDeposits) / 10 ** 6).toLocaleString(
-            "en-US"
-          )}`
-        : "$0.00",
-    },
-    {
-      id: 2,
-      name: "Contributors",
-      value: "30", // This would need to be updated with actual contributor count
-    },
-  ];
+  const stats = React.useMemo(() => {
+    const uniqueContributors = allDepositsData?.deposits
+      ? new Set(allDepositsData?.deposits.map(deposit => deposit.donor.address)).size
+      : 0;
+  
+    return [
+      {
+        id: 1,
+        name: "Total Donations",
+        value: campaign
+          ? `$${(Number(campaign.totalDeposits) / 10 ** 6).toLocaleString(
+              "en-US"
+            )}`
+          : "$0.00",
+      },
+      {
+        id: 2,
+        name: "Contributors",
+        value: uniqueContributors.toString(),
+      },
+    ];
+  }, [campaign, allDepositsData?.deposits]);
 
   const handleCopyAddress = () => {
     copyToClipboard("campaignAddress", campaign?.walletAddress || "");
@@ -126,35 +142,39 @@ const CampaignPage = () => {
                             />
                           </div>
                           <div className="flex flex-col justify-start items-start space-y-3 w-full">
-                          <h1 className="text-2xl font-bold">
-                            {campaign.name}
-                          </h1>
-                          <div className="flex flex-col justify-start items-start space-y-3 w-full">
-                            <p className="text-sm font-semibold">
-                              Campaign Multisig Address
-                            </p>
-                            <button
-                              type="button"
-                              onClick={handleCopyAddress}
-                              className="flex items-center gap-6 text-sm bg-muted rounded-lg px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
-                            >
-                              <span>{campaign.walletAddress}</span>
-                              {copiedStates.campaignAddress ? (
-                                <CheckmarkIcon className="size-4 text-primary-blue" />
-                              ) : (
-                                <CopyIcon className="size-4 text-text-secondary hover:text-primary-blue transition-colors" />
-                              )}
-                            </button>
-                          </div>
+                            <h1 className="text-2xl font-bold">
+                              {campaign.name}
+                            </h1>
+                            <div className="flex flex-col justify-start items-start space-y-3 w-full ">
+                              <p className="text-sm font-semibold">
+                                Campaign Multisig Address
+                              </p>
+                              <button
+                                type="button"
+                                onClick={handleCopyAddress}
+                                className="flex items-center justify-between w-full text-sm bg-muted rounded-lg px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+                              >
+                                <span className="truncate max-w-[calc(100%-2rem)]">
+                                  {campaign.walletAddress}
+                                </span>
+                                <span className="flex-shrink-0 ml-2">
+                                  {copiedStates.campaignAddress ? (
+                                    <CheckmarkIcon className="size-4 text-primary-blue" />
+                                  ) : (
+                                    <CopyIcon className="size-4 text-text-secondary hover:text-primary-blue transition-colors" />
+                                  )}
+                                </span>
+                              </button>
+                            </div>
 
-                          <div className="flex flex-col justify-start items-start space-y-3 w-full">
-                            <p className="text-sm font-semibold">
-                              Campaign Description
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {campaign.description}
-                            </p>
-                          </div>
+                            <div className="flex flex-col justify-start items-start space-y-3 w-full">
+                              <p className="text-sm font-semibold">
+                                Campaign Description
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {campaign.description}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -185,7 +205,8 @@ const CampaignPage = () => {
                   </div>
 
                   <AnimatedItem className="pt-6">
-                    <TransactionsTab />
+                    <TransactionsTab data={allDepositsData} />
+                    {/* <DataTable data={tasks} columns={columns} /> */}
                   </AnimatedItem>
                 </>
               )}

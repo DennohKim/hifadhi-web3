@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 // import { toast } from "sonner";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 // import { AnimatePresence, motion } from "framer-motion";
@@ -15,8 +15,13 @@ import { ArrowRightIcon, BannerIcon } from "@/components/ImageAssets";
 // 	TransactionsListResponse,
 // } from "@/lib/types";
 import { useAddressContext } from "@/context/AddressContext";
-import { useOrganizationCount } from "@/actions/organisation";
-
+import {
+  useOrganizationCount,
+  useUserOrganizations,
+  useOrganizationDetails,
+} from "@/actions/organisation";
+import OrganisationCard from "@/components/OrganisationCard";
+import OrganisationCardSkeleton from "@/components/skeletons/OrganisationCardSkeleton";
 
 const Card = ({
   title,
@@ -35,13 +40,48 @@ export default function Dashboard() {
   const router = useRouter();
   const { ready, user, authenticated } = usePrivy();
   const { basename, avatar } = useAddressContext();
-  const { data: organizationCount, isError, isLoading } = useOrganizationCount();
+  const {
+    data: organizationCount,
+    isError,
+    isLoading,
+  } = useOrganizationCount();
+
+  const { data: userOrgIds } = useUserOrganizations(user?.wallet?.address);
+  const { data: orgDetails, isLoading: isLoadingDetails } =
+    useOrganizationDetails(
+      userOrgIds ? Array.from(userOrgIds).map(Number) : undefined
+    );
+
+  const userOrganizations = React.useMemo(() => {
+    return orgDetails
+      ?.map((result, index) => {
+        if (result.status === "success") {
+          const [name, imageUrl, description, owner, isActive, orgId] =
+            result.result;
+          return {
+            id: Number(orgId),
+            name,
+            description,
+            image: imageUrl,
+            category: "community",
+            owner,
+            isActive,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }, [orgDetails]);
 
   const cardData = [
     {
       id: 1,
       title: "Organisations",
-      content: isLoading ? "Loading..." : isError ? "Error" : Number(organizationCount || 0),
+      content: isLoading
+        ? "Loading..."
+        : isError
+        ? "Error"
+        : Number(organizationCount || 0),
     },
     {
       id: 2,
@@ -63,7 +103,6 @@ export default function Dashboard() {
 
   return (
     <>
-
       <AnimatedContainer className="flex flex-col gap-8 max-w-screen-md mx-auto px-4 pt-20 min-h-screen font-jakarta">
         <div className="flex-grow space-y-6">
           {user?.wallet?.walletClientType !== "privy" &&
@@ -137,9 +176,58 @@ export default function Dashboard() {
             ))}
           </AnimatedItem>
 
-          {/* <AnimatedItem>
-						<TransactionHistory />
-					</AnimatedItem> */}
+          <div className="flex-grow space-y-6">
+            <AnimatedItem>
+              <div className="flex justify-between items-start pb-4">
+                <h2 className="text-text-primary text-lg md:text-xl  font-semibold">
+                  My Organisations
+                </h2>
+              </div>
+            </AnimatedItem>
+
+            {/* organisation cards */}
+            <AnimatedItem>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {isLoadingDetails ? (
+                  <>
+                    <OrganisationCardSkeleton />
+                    <OrganisationCardSkeleton />
+                    <OrganisationCardSkeleton />
+                  </>
+                ) : userOrganizations && userOrganizations.length > 0 ? (
+                  userOrganizations.map((org) => (
+                    <OrganisationCard
+                      key={org.id}
+                      id={org.id}
+                      name={org.name}
+                      description={org.description}
+                      category={org.category}
+                      image={org.image}
+                      owner={org.owner}
+                      isActive={org.isActive}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-3 flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg">
+                    <div className="text-center space-y-3">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        No organizations yet
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Join or create an organization to get started
+                      </p>
+                      <Link
+                        href="/organisations"
+                        className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-blue rounded-md hover:bg-blue-600"
+                      >
+                        Browse Organizations
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </AnimatedItem>
+          </div>
         </div>
         <Footer />
       </AnimatedContainer>

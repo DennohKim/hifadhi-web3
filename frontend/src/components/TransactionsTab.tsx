@@ -1,25 +1,25 @@
 "use client"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { AnimatedItem } from "./Animations"
-import { TransactionHistory } from "./TransactionHistory"
+import { DataTable } from "./transactions/deposits/components/data-table";
+import { columns } from "./transactions/deposits/components/columns";
 
-export function TransactionsTab() {
+
+interface TransactionsTabProps {
+  data: any;
+}
+
+export function TransactionsTab({ data }: TransactionsTabProps) {
+  const deposits = data?.deposits || []
+
   return (
     <Tabs defaultValue="All transactions" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
@@ -29,19 +29,18 @@ export function TransactionsTab() {
       <TabsContent value="All transactions">
         <Card>
           <CardContent className="space-y-2">
-          <div>
-            <TransactionHistory transactions={[]} />
-           </div>
+            <div className="pt-6">
+              <DataTable data={deposits} columns={columns} />
+            </div>
           </CardContent>
-         
         </Card>
       </TabsContent>
       <TabsContent value="My transactions">
         <Card>
           <CardContent className="space-y-2">
-           <div>
-            <TransactionHistory transactions={[]} />
-           </div>
+            <div className="pt-6">
+              <DataTable data={deposits} columns={columns} />
+            </div>
           </CardContent>
         </Card>
       </TabsContent>
