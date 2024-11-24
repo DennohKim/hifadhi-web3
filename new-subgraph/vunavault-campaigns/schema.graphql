@@ -10,16 +10,6 @@ type CampaignCreated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type CampaignTargetReached @entity(immutable: true) {
-  id: Bytes!
-  campaignId: BigInt! # uint256
-  target: BigInt! # uint256
-  timestamp: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
 type DepositMade @entity(immutable: true) {
   id: Bytes!
   campaignId: BigInt! # uint256
@@ -48,6 +38,60 @@ type OrganizationCreated @entity(immutable: true) {
   owner: Bytes! # address
   imageUrl: String! # string
   description: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+
+type Campaign @entity {
+  id: ID!
+  name: String!
+  description: String!
+  imageUrl: String!
+  walletAddress: Bytes!
+  organization: Organization!
+  totalDeposits: BigInt!
+  target: BigInt!      # New field
+  isActive: Boolean!
+  deposits: [Deposit!]! @derivedFrom(field: "campaign")
+  createdAt: BigInt!
+}
+
+type Organization @entity {
+  id: ID!
+  name: String!
+  description: String!
+  imageUrl: String!
+  owner: Bytes!
+  campaigns: [Campaign!]! @derivedFrom(field: "organization")
+  members: [Member!]! @derivedFrom(field: "organization")
+  createdAt: BigInt!
+}
+
+type Member @entity {
+  id: ID!
+  address: Bytes!
+  organization: Organization!
+  deposits: [Deposit!]! @derivedFrom(field: "donor")
+  joinedAt: BigInt!
+}
+
+type Deposit @entity {
+  id: ID!
+  campaign: Campaign!
+  donor: Member!
+  amount: BigInt!
+  timestamp: BigInt!
+  cumulativeAmount: BigInt!
+  transactionHash: Bytes!
+}
+
+type CampaignTargetReached @entity(immutable: true) {
+  id: Bytes!
+  campaignId: BigInt!
+  target: BigInt!
+  timestamp: BigInt!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

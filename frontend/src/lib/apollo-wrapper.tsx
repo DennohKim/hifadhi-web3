@@ -37,7 +37,7 @@ export function ApolloWrapper({
 
   function makeClient() {
     const httpLink = new HttpLink({
-      uri: 'https://api.studio.thegraph.com/query/75392/organization-campaigns/version/latest',
+      uri: 'https://api.studio.thegraph.com/query/75392/vunavault-campaigns/v0.0.1https://api.studio.thegraph.com/query/75392/vunavault-campaigns/version/latest',
       fetchOptions: { cache: 'no-store' },
     })
 
