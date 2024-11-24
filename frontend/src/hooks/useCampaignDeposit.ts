@@ -22,9 +22,24 @@ const GET_CAMPAIGN_DEPOSITS = gql`
   }
 `;
 
+const GET_ALL_DEPOSITS = gql`
+  query GetAllDeposits {
+    deposits(first: 1000) {
+      donor {
+        address
+      }
+    }
+  }
+`;
+
+
 export function useCampaignDeposits(campaignId: string, first = 10, skip = 0) {
   return useQuery(GET_CAMPAIGN_DEPOSITS, {
     variables: { campaignId, first, skip },
     skip: !campaignId
   });
+}
+
+export function useAllDeposits() {
+  return useQuery(GET_ALL_DEPOSITS);
 }

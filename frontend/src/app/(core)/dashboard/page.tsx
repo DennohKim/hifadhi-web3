@@ -22,6 +22,8 @@ import {
 } from "@/actions/organisation";
 import OrganisationCard from "@/components/OrganisationCard";
 import OrganisationCardSkeleton from "@/components/skeletons/OrganisationCardSkeleton";
+import { useAllDeposits } from "@/hooks/useCampaignDeposit";
+import { useAllCampaigns, useCampaignCount } from "@/actions/campaigns";
 
 const Card = ({
   title,
@@ -51,6 +53,28 @@ export default function Dashboard() {
     useOrganizationDetails(
       userOrgIds ? Array.from(userOrgIds).map(Number) : undefined
     );
+  const { data: allDeposits } = useAllDeposits();
+  const { data: allCampaigns } = useAllCampaigns();
+
+  const uniqueContributors = React.useMemo(() => {
+    if (!allDeposits?.deposits) return 0;
+    const uniqueAddresses = new Set(
+      allDeposits.deposits.map((deposit) => deposit.donor.address.toLowerCase())
+    );
+    return uniqueAddresses.size;
+  }, [allDeposits]);
+
+  const totalFundsRaised = React.useMemo(() => {
+    if (!allCampaigns) return BigInt(0);
+
+    return allCampaigns.reduce((total, campaign) => {
+      if (campaign.status === "success") {
+        const [, , , , , totalDeposits] = campaign.result;
+        return total + totalDeposits;
+      }
+      return total;
+    }, BigInt(0));
+  }, [allCampaigns]);
 
   const userOrganizations = React.useMemo(() => {
     return orgDetails
@@ -85,13 +109,15 @@ export default function Dashboard() {
     },
     {
       id: 2,
-      title: "Campaigns Deposited",
-      content: 0,
+      title: "Total Donations",
+      content: `$${(Number(totalFundsRaised) / 10 ** 6).toLocaleString(
+        "en-US"
+      )}`,
     },
     {
       id: 3,
-      title: "Total Deposited",
-      content: 0,
+      title: "Total Contributors",
+      content: uniqueContributors,
     },
   ];
 
