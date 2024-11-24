@@ -180,21 +180,20 @@ const CampaignPage = () => {
                       </div>
                     </div>
                     <div className="md:w-2/5 w-full">
-                      {/* Remove class [ h-24 ] when adding a card block */}
-                      {/* Remove class [ border-gray-300  dark:border-gray-700 border-dashed border-2 ] to remove dotted border */}
                       <div className="">
                         <dl className="grid grid-cols-2 gap-4 rounded-lg bg-muted mb-4 text-sm">
                           {stats.map((stat) => (
                             <div
                               key={stat.id}
-                              className="flex flex-col gap-1 px-4 py-4 space-y-1 "
+                              className="flex flex-col gap-1 px-4 py-4 space-y-1 justify-between items-center"
                             >
+                                <dd className="text-3xl font-semibold tracking-tight">
+                                {stat.value}
+                              </dd>
                               <dt className="text-sm text-muted-foreground">
                                 {stat.name}
                               </dt>
-                              <dd className="text-3xl font-semibold tracking-tight">
-                                {stat.value}
-                              </dd>
+                            
                             </div>
                           ))}
                         </dl>

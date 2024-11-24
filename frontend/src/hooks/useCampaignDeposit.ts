@@ -1,25 +1,25 @@
 import { gql, useQuery } from '@apollo/client';
 
 const GET_CAMPAIGN_DEPOSITS = gql`
-  query GetCampaignDeposits($campaignId: String!, $first: Int = 10, $skip: Int = 0) {
-    deposits(
-      first: $first
-      skip: $skip
-      where: { campaign: $campaignId }
-      orderBy: timestamp
-      orderDirection: desc
-    ) {
+  query GetCampaignDeposits($campaignId: String!, $walletAddress: String, $first: Int = 10, $skip: Int = 0) {
+  deposits(
+    first: $first
+    skip: $skip
+    where: { campaign: $campaignId }
+    orderBy: timestamp
+    orderDirection: desc
+  ) {
+    id
+    donor {
       id
-      donor {
-        id
-        address
-      }
-      amount
-      timestamp
-      cumulativeAmount
-      transactionHash
+      address
     }
+    amount
+    timestamp
+    cumulativeAmount
+    transactionHash
   }
+}
 `;
 
 const GET_ALL_DEPOSITS = gql`

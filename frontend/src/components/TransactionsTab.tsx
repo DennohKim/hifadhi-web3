@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/tabs"
 import { DataTable } from "./transactions/deposits/components/data-table";
 import { columns } from "./transactions/deposits/components/columns";
+import { usePrivy } from "@privy-io/react-auth";
 
 
 interface TransactionsTabProps {
@@ -19,6 +20,11 @@ interface TransactionsTabProps {
 
 export function TransactionsTab({ data }: TransactionsTabProps) {
   const deposits = data?.deposits || []
+  const { user } = usePrivy();
+const walletAddress = user?.wallet?.address;
+
+const myDeposits = data?.deposits.filter(deposit => deposit.donor.address.toLowerCase() === walletAddress?.toLowerCase()) || [];
+
 
   return (
     <Tabs defaultValue="All transactions" className="w-full">
@@ -39,7 +45,7 @@ export function TransactionsTab({ data }: TransactionsTabProps) {
         <Card>
           <CardContent className="space-y-2">
             <div className="pt-6">
-              <DataTable data={deposits} columns={columns} />
+              <DataTable data={myDeposits} columns={columns} />
             </div>
           </CardContent>
         </Card>

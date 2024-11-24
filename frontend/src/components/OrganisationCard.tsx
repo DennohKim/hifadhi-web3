@@ -3,12 +3,14 @@ import { getName } from "@coinbase/onchainkit/identity";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { base } from "viem/chains";
+import { CardContent, CardHeader } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Separator } from "./ui/separator";
 
 interface OrganisationProps {
   id: number;
   name: string;
   description: string;
-  category: string;
   image: string;
   owner: string;
   isActive: boolean;
@@ -18,12 +20,10 @@ const OrganisationCard = ({
   id,
   name,
   description,
-  category,
   image,
   owner,
   isActive,
 }: OrganisationProps) => {
-
   const [ownerBasename, setOwnerBasename] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,35 +48,46 @@ const OrganisationCard = ({
       href={`/organisations/${id}`}
       className="max-w-sm w-full relative rounded shadow"
     >
-      <div className="max-w-sm w-full relative rounded shadow bg-white dark:bg-gray-800">
-        <img src={image} className="w-full h-36 object-cover" alt={name} />
-        <div className=" flex flex-col space-y-2 py-2 px-4">
-          <div className="flex justify-between">
-            <p className="sm:text-xl text-lg font-bold leading-10 text-gray-800">
-              {name}
-            </p>
-            <p
-              className={`text-sm px-2 py-1 rounded-full ${
-                isActive
-                  ? "text-green-700 bg-green-100 text-sm "
-                  : "text-red-700 bg-red-100 text-sm"
-              }`}
-            >
-              {isActive ? "active" : "inactive"}
-            </p>{" "}
-          </div>
-
-          <p className="sm:text-base text-sm leading-5 text-gray-500 pt-3">
-            {description}
-          </p>
-          <div className="text-sm text-gray-500 flex justify-between">
-            <p className="font-bold">Creator</p>
-            <p>
-            {ownerBasename || `${owner.slice(0, 6)}...${owner.slice(-4)}`}
-            </p>
+      <CardHeader className="p-0">
+        <div className="relative h-40 overflow-hidden rounded-t-lg">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${image})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex items-center justify-between">
+              <Badge
+                variant="default"
+                className={`sm:text-sm text-xs ${
+                  isActive
+                    ? "text-green-500 bg-green-500/30 px-2 rounded-full w-fit"
+                    : "text-red-500"
+                }`}
+              >
+                {isActive ? "Active" : "Inactive"}
+              </Badge>
+            </div>
           </div>
         </div>
-      </div>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight">{name}</h3>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
+        </div>
+        <Separator className="my-4" />
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-muted-foreground">Owner</span>
+            <span className="text-sm font-medium">
+              {ownerBasename || `${owner.slice(0, 6)}...${owner.slice(-4)}`}
+            </span>
+          </div>
+        </div>
+      </CardContent>
     </Link>
   );
 };

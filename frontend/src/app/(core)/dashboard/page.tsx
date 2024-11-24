@@ -214,7 +214,7 @@ export default function Dashboard() {
             {/* organisation cards */}
             <AnimatedItem>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {isLoadingDetails ? (
+                {isLoadingDetails && !userOrganizations ? (
                   <>
                     <OrganisationCardSkeleton />
                     <OrganisationCardSkeleton />
@@ -223,14 +223,13 @@ export default function Dashboard() {
                 ) : userOrganizations && userOrganizations.length > 0 ? (
                   userOrganizations.map((org) => (
                     <OrganisationCard
-                      key={org.id}
-                      id={org.id}
-                      name={org.name}
-                      description={org.description}
-                      category={org.category}
-                      image={org.image}
-                      owner={org.owner}
-                      isActive={org.isActive}
+                      key={org?.id}
+                      id={org?.id || 0}
+                      name={org?.name}
+                      description={org?.description}
+                      image={org?.image}
+                      owner={org?.owner}
+                      isActive={org?.isActive}
                     />
                   ))
                 ) : (
