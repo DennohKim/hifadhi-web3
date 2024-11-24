@@ -2,23 +2,35 @@
 import { AnimatedContainer, AnimatedItem, Footer } from "@/components";
 import CampaignCard from "@/components/CampaignCard";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { LoaderCircle, PlusIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import {
-  useCampaignDetails,
-  useOrganizationCampaigns,
-} from "@/actions/campaigns";
-import {
-  useJoinOrganization,
-  useOrganizationDetails,
-} from "@/actions/organisation";
+import { useJoinOrganization, useOrganizationDetails } from "@/actions/organisation";
 import { toast } from "sonner";
 import { useSetActiveWallet } from "@privy-io/wagmi";
 import { CONTRACTS } from "@/lib/contracts/config";
 import { Abi } from "viem";
 import { useReadContract } from "wagmi";
+import { useOrganizationCampaigns } from "@/hooks/useOrganisationCampaigns";
+
+export interface CampaignCardProps {
+ 
+    id: string;
+    name: string;
+    description: string;
+    imageUrl: string;
+    target: string;
+    totalDeposits: string;
+    organization: {
+      id: string;
+      name: string;
+    };
+    isActive: boolean;
+    createdAt: string;
+ 
+}
 
 const OrganisationPage = () => {
   const router = useRouter();
@@ -27,9 +39,8 @@ const OrganisationPage = () => {
   const orgId = params.orgId;
   const { writeContractAsync } = useJoinOrganization();
 
-  console.log(orgId);
-  const { data: campaignIds, refetch: refetchCampaigns } = useOrganizationCampaigns(orgId as string);
-  const { data: orgDetails, isLoading: isLoadingOrg, refetch: refetchOrgDetails  } = useOrganizationDetails([
+  const { data, loading, error, refetch: refetchCampaigns } = useOrganizationCampaigns(orgId as string);
+  const { data: orgDetails, isLoading: isLoadingOrg, refetch: refetchOrgDetails } = useOrganizationDetails([
     Number(orgId),
   ]);
   const { wallets } = useWallets();
@@ -49,41 +60,17 @@ const OrganisationPage = () => {
     },
   });
 
-  const { data: campaignDetailsResults } = useCampaignDetails(
-    campaignIds?.map((id) => BigInt(id))
-  );
   const campaigns = React.useMemo(() => {
-    if (!campaignIds || !campaignDetailsResults) return [];
+    if (!data?.campaigns) return [];
+    return data.campaigns;
+  }, [data]);
 
-    return campaignDetailsResults
-      .map((result, index) => {
-        if (result.status === "success") {
-          const [
-            name,
-            description,
-            imageUrl,
-            walletAddress,
-            orgId,
-            totalDeposits,
-            isActive,
-          ] = result.result;
-          return {
-            id: Number(campaignIds[index]),
-            name,
-            description,
-            imageUrl,
-            walletAddress,
-            orgId: Number(orgId),
-            totalDeposits,
-            isActive,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
-  }, [campaignIds, campaignDetailsResults]);
-
-  console.log(orgDetails);
+  const { activeCampaigns, inactiveCampaigns } = React.useMemo(() => {
+    return {
+      activeCampaigns: campaigns.filter((campaign: CampaignCardProps) => campaign.isActive),
+      inactiveCampaigns: campaigns.filter((campaign: CampaignCardProps) => !campaign.isActive),
+    };
+  }, [campaigns]);
 
   const handleJoinOrganization = async () => {
     if (!authenticated) {
@@ -186,64 +173,89 @@ const OrganisationPage = () => {
             </AnimatedItem>
 
             <AnimatedItem>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {campaigns && campaigns.length > 0 ? (
-                  campaigns.map((campaign) => (
-                    <CampaignCard key={campaign.id} campaign={campaign} />
-                  ))
-                ) : (
-                  <div className="col-span-3 flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg">
-                    <div className="text-center space-y-3">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        No campaigns yet
-                      </h3>
+              <Tabs defaultValue="active" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="active">Active Campaigns</TabsTrigger>
+                  <TabsTrigger value="inactive">Campaigns Ended</TabsTrigger>
+                </TabsList>
 
-                      {orgDetails &&
-                        orgDetails?.[0]?.result?.[3]?.toLowerCase() ===
-                          user?.wallet?.address?.toLowerCase() && (
-                          <>
-                            <p className="text-sm text-gray-500">
-                              Get started by creating your first campaign
-                            </p>
-                            <Button
-                              variant="create"
-                              className="mt-4"
-                              onClick={() =>
-                                router.push(
-                                  `/organisations/${orgId}/create_campaign`
-                                )
-                              }
-                            >
-                              <PlusIcon className="w-4 h-4 mr-2" />
-                              Create Campaign
-                            </Button>
-                          </>
-                        )}
-                      {!isMember &&
-                        orgDetails &&
-                        orgDetails?.[0]?.result?.[3]?.toLowerCase() !==
-                          user?.wallet?.address?.toLowerCase() && (
-                          <>
-                            <p className="text-sm text-gray-500">
-                              Join Organisation to make donations
-                            </p>
-                            <Button
-                              variant="secondary"
-                              onClick={handleJoinOrganization}
-                              disabled={isJoining}
-                            >
-                              Join Organisation
-                            </Button>
-                          </>
-                        )}
-                    </div>
+                <TabsContent value="active">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {activeCampaigns.length > 0 ? (
+                      activeCampaigns.map((campaign: CampaignCardProps) => (
+                        <CampaignCard key={campaign.id} campaign={campaign} />
+                      ))
+                    ) : (
+                      <div className="col-span-3 flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg">
+                        <div className="text-center space-y-3">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            No active campaigns
+                          </h3>
+                          {orgDetails &&
+                            orgDetails?.[0]?.result?.[3]?.toLowerCase() ===
+                              user?.wallet?.address?.toLowerCase() && (
+                              <>
+                                <p className="text-sm text-gray-500">
+                                  Get started by creating your first campaign
+                                </p>
+                                <Button
+                                  variant="create"
+                                  className="mt-4"
+                                  onClick={() =>
+                                    router.push(
+                                      `/organisations/${orgId}/create_campaign`
+                                    )
+                                  }
+                                >
+                                  <PlusIcon className="w-4 h-4 mr-2" />
+                                  Create Campaign
+                                </Button>
+                              </>
+                            )}
+                          {!isMember &&
+                            orgDetails &&
+                            orgDetails?.[0]?.result?.[3]?.toLowerCase() !==
+                              user?.wallet?.address?.toLowerCase() && (
+                              <>
+                                <p className="text-sm text-gray-500">
+                                  Join Organisation to make donations
+                                </p>
+                                <Button
+                                  variant="secondary"
+                                  onClick={handleJoinOrganization}
+                                  disabled={isJoining}
+                                >
+                                  Join Organisation
+                                </Button>
+                              </>
+                            )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </TabsContent>
+
+                <TabsContent value="inactive">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {inactiveCampaigns.length > 0 ? (
+                      inactiveCampaigns.map((campaign) => (
+                        <CampaignCard key={campaign.id} campaign={campaign} />
+                      ))
+                    ) : (
+                      <div className="col-span-3 flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg">
+                        <div className="text-center space-y-3">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            No inactive campaigns
+                          </h3>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </AnimatedItem>
           </div>
         )}
-
         <Footer />
       </AnimatedContainer>
     </>

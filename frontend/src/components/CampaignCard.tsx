@@ -44,7 +44,7 @@ const CampaignCard = ({ campaign }: CampaignCardProps) => {
                   className={`sm:text-sm text-xs ${
                     campaign.isActive
                       ? "text-green-500 bg-green-500/30 px-2 rounded-full w-fit"
-                      : "text-red-500"
+                      : "text-red-500 bg-red-500/30 px-2 rounded-full w-fit"
                   }`}
                 >
                   {campaign.isActive ? "Active" : "Inactive"}

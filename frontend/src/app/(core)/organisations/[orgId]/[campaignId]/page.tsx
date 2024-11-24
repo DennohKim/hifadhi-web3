@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { campaigns } from "@/lib/mocks";
 import { formatUSDC, shortenAddress } from "@/lib/utils";
 import { usePrivy } from "@privy-io/react-auth";
-import { CopyIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { CopyIcon, ExternalLink, PlusIcon, SearchIcon } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -31,6 +31,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useOrganizationCampaigns } from "@/hooks/useOrganisationCampaigns";
 
 const CampaignPage = () => {
   const router = useRouter();
@@ -43,20 +45,19 @@ const CampaignPage = () => {
     data: allDepositsData,
     loading,
     error,
+    refetch: refetchDeposits,
   } = useCampaignDeposits(campaignId as string);
 
-  console.log(allDepositsData)
 
   // Add error and loading states
   const {
     data: campaignDetailsResults,
     isError,
     isLoading,
-    refetch,
+    refetch: refetchCampaignDetails,
   } = useCampaignDetails(
     campaignId ? [BigInt(campaignId as string)] : undefined
   );
-
 
   const campaign = React.useMemo(() => {
     if (
@@ -79,12 +80,17 @@ const CampaignPage = () => {
       isActive: result[7],
     };
   }, [campaignDetailsResults]);
+  
+  const { data: campaignData, loading: campaignLoading, error: campaignError, refetch: refetchCampaignsInfo } = useOrganizationCampaigns(campaign?.orgId.toString());
+
 
   // Handler for successful deposits
   const handleDepositSuccess = React.useCallback(() => {
     // Refetch campaign details to get updated totalDeposits
-    refetch();
-  }, [refetch]);
+    refetchDeposits();
+    refetchCampaignDetails();
+    refetchCampaignsInfo(); 
+  }, [refetchDeposits, refetchCampaignDetails, refetchCampaignsInfo]);
 
   const stats = React.useMemo(() => {
     const uniqueContributors = allDepositsData?.deposits
@@ -147,9 +153,20 @@ const CampaignPage = () => {
                             />
                           </div>
                           <div className="flex flex-col justify-start items-start space-y-3 w-full">
-                            <h1 className="text-2xl font-bold">
-                              {campaign.name}
-                            </h1>
+                            <div className="flex justify-between items-center w-full">
+                              <h1 className="text-2xl font-bold">
+                                {campaign.name}
+                              </h1>
+                              <Badge
+                                variant={
+                                  campaign.isActive ? "active" : "inactive"
+                                }
+                                className="sm:text-sm text-xs"
+                              >
+                                {campaign.isActive ? "Active" : "Inactive"}
+                              </Badge>
+                            </div>
+
                             <div className="flex flex-col justify-start items-start space-y-3 w-full ">
                               <p className="text-sm font-semibold">
                                 Campaign Multisig Address
@@ -186,28 +203,77 @@ const CampaignPage = () => {
                     </div>
                     <div className="md:w-2/5 w-full">
                       <div className="">
-                        <Card className="mb-4">
-                          <CardHeader className="pb-3">
-                            <div className="flex justify-between items-baseline">
-                              <div>
-                                <CardTitle className="text-2xl">
-                                  {stats[0].value}
-                                </CardTitle>
-                                <CardDescription>
-                                  raised of {stats[1].value} goal
-                                </CardDescription>
-                              </div>
-                              <span className="text-xl font-semibold">
-                                {calculateProgress}%
-                              </span>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <Progress value={calculateProgress} className="h-2" />
-                          </CardContent>
-                        </Card>
+                        {campaign.isActive ? (
+                          <>
+                            <Card className="mb-4">
+                              <CardHeader className="pb-3">
+                                <div className="flex justify-between items-baseline">
+                                  <div>
+                                    <CardTitle className="text-2xl">
+                                      {stats[0].value}
+                                    </CardTitle>
+                                    <CardDescription>
+                                      raised of {stats[1].value} goal
+                                    </CardDescription>
+                                  </div>
+                                  <span className="text-xl font-semibold">
+                                    {calculateProgress}%
+                                  </span>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <Progress
+                                  value={calculateProgress}
+                                  className="h-2"
+                                />
+                              </CardContent>
+                            </Card>
 
-                        <DonateFunds onDepositSuccess={handleDepositSuccess} />
+                            <DonateFunds
+                              onDepositSuccess={handleDepositSuccess}
+                            />
+                          </>
+                        ) : (
+                          <Card className="shadow-lg">
+                            <CardHeader className="space-y-1 pb-4">
+                              <h2 className="text-xl font-bold">
+                                Campaign Progress
+                              </h2>
+                              <p className="text-muted-foreground">
+                                Goal reached successfully
+                              </p>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex items-baseline justify-between">
+                                  <span className="text-2xl font-bold">
+                                    {stats[0].value}
+                                  </span>
+                                  <span className="text-base font-medium text-muted-foreground">
+                                    of {stats[1].value}
+                                  </span>
+                                </div>
+                                <Progress
+                                  value={calculateProgress}
+                                  className="h-3"
+                                />
+                                <p className="text-right text-sm text-muted-foreground">
+                                  {calculateProgress}% Complete
+                                </p>
+                              </div>
+                             
+                              <Button
+                                variant="outline"
+                                className="w-full"
+                                size="lg"
+                                onClick={() => router.back()}
+                              >
+                                View Other Campaigns
+                                <ExternalLink className="ml-2 h-4 w-4" />
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        )}
                       </div>
                     </div>
                   </div>
