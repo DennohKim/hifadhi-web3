@@ -14,7 +14,7 @@ import { TransactionsTab } from "@/components/TransactionsTab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { campaigns } from "@/lib/mocks";
-import { shortenAddress } from "@/lib/utils";
+import { formatUSDC, shortenAddress } from "@/lib/utils";
 import { usePrivy } from "@privy-io/react-auth";
 import { CopyIcon, PlusIcon, SearchIcon } from "lucide-react";
 import Image from "next/image";
@@ -23,8 +23,14 @@ import React, { useEffect, useState } from "react";
 import { useCopyToClipboard } from "@/hooks/hooks";
 import { CheckmarkIcon } from "@/components/ImageAssets";
 import { useCampaignDeposits } from "@/hooks/useCampaignDeposit";
-import { columns } from "@/components/transactions/deposits/components/columns";
-import { DataTable } from "@/components/transactions/deposits/components/data-table";
+import { Progress } from "@/components/ui/progress";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const CampaignPage = () => {
   const router = useRouter();
@@ -39,7 +45,8 @@ const CampaignPage = () => {
     error,
   } = useCampaignDeposits(campaignId as string);
 
-  console.log(allDepositsData);
+  console.log(allDepositsData)
+
   // Add error and loading states
   const {
     data: campaignDetailsResults,
@@ -50,34 +57,26 @@ const CampaignPage = () => {
     campaignId ? [BigInt(campaignId as string)] : undefined
   );
 
-  console.log(campaignDetailsResults);
 
   const campaign = React.useMemo(() => {
     if (
       !campaignDetailsResults?.length ||
-      campaignDetailsResults[0].status !== "success"
+      campaignDetailsResults[0].status !== "success" ||
+      !Array.isArray(campaignDetailsResults[0].result)
     ) {
       return null;
     }
 
-    const [
-      name,
-      description,
-      imageUrl,
-      walletAddress,
-      orgId,
-      totalDeposits,
-      isActive,
-    ] = campaignDetailsResults[0].result;
-
+    const result = campaignDetailsResults[0].result;
     return {
-      name,
-      description,
-      image: imageUrl,
-      walletAddress,
-      orgId: Number(orgId),
-      totalDeposits: Number(totalDeposits),
-      isActive,
+      name: result[0],
+      description: result[1],
+      image: result[2],
+      target: Number(result[6]),
+      walletAddress: result[3],
+      orgId: Number(result[4]),
+      totalDeposits: Number(result[5]),
+      isActive: result[7],
     };
   }, [campaignDetailsResults]);
 
@@ -89,26 +88,32 @@ const CampaignPage = () => {
 
   const stats = React.useMemo(() => {
     const uniqueContributors = allDepositsData?.deposits
-      ? new Set(allDepositsData?.deposits.map(deposit => deposit.donor.address)).size
+      ? new Set(
+          allDepositsData?.deposits.map((deposit) => deposit.donor.address)
+        ).size
       : 0;
-  
+
     return [
       {
         id: 1,
         name: "Total Donations",
         value: campaign
-          ? `$${(Number(campaign.totalDeposits) / 10 ** 6).toLocaleString(
-              "en-US"
-            )}`
+          ? `${formatUSDC(Number(campaign.totalDeposits))}`
           : "$0.00",
       },
       {
         id: 2,
-        name: "Contributors",
-        value: uniqueContributors.toString(),
+        name: "Target",
+        value: campaign ? `${formatUSDC(Number(campaign.target))}` : "$0.00",
       },
     ];
   }, [campaign, allDepositsData?.deposits]);
+
+  const calculateProgress = React.useMemo(() => {
+    if (!campaign?.target || !campaign?.totalDeposits) return 0;
+    const percentage = (campaign.totalDeposits / campaign.target) * 100;
+    return Math.min(Math.round(percentage), 100); // Caps at 100%
+  }, [campaign?.target, campaign?.totalDeposits]);
 
   const handleCopyAddress = () => {
     copyToClipboard("campaignAddress", campaign?.walletAddress || "");
@@ -181,22 +186,26 @@ const CampaignPage = () => {
                     </div>
                     <div className="md:w-2/5 w-full">
                       <div className="">
-                        <dl className="grid grid-cols-2 gap-4 rounded-lg bg-muted mb-4 text-sm">
-                          {stats.map((stat) => (
-                            <div
-                              key={stat.id}
-                              className="flex flex-col gap-1 px-4 py-4 space-y-1 justify-between items-center"
-                            >
-                                <dd className="text-3xl font-semibold tracking-tight">
-                                {stat.value}
-                              </dd>
-                              <dt className="text-sm text-muted-foreground">
-                                {stat.name}
-                              </dt>
-                            
+                        <Card className="mb-4">
+                          <CardHeader className="pb-3">
+                            <div className="flex justify-between items-baseline">
+                              <div>
+                                <CardTitle className="text-2xl">
+                                  {stats[0].value}
+                                </CardTitle>
+                                <CardDescription>
+                                  raised of {stats[1].value} goal
+                                </CardDescription>
+                              </div>
+                              <span className="text-xl font-semibold">
+                                {calculateProgress}%
+                              </span>
                             </div>
-                          ))}
-                        </dl>
+                          </CardHeader>
+                          <CardContent>
+                            <Progress value={calculateProgress} className="h-2" />
+                          </CardContent>
+                        </Card>
 
                         <DonateFunds onDepositSuccess={handleDepositSuccess} />
                       </div>

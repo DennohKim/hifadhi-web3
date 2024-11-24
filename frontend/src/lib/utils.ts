@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 import { format } from "date-fns";
 import type { InstitutionProps } from "./types";
+import { formatUnits } from "viem";
 
 /**
  * Concatenates and returns a string of class names.
@@ -184,4 +185,42 @@ export const formatNumberWithCommas = (value: string | number): string => {
 	}
 	
 	return formattedInteger;
+  };
+
+
+//   export const formatUSDC = (value: bigint | number, options?: Intl.NumberFormatOptions) => {
+// 	const defaultOptions = {
+// 	  style: 'currency',
+// 	  currency: 'USD',
+// 	  minimumFractionDigits: 2,
+// 	  maximumFractionDigits: 2,
+// 	  ...options
+// 	};
+	
+// 	// Convert from USDC's 6 decimals to a regular number
+// 	const normalizedValue = Number(value) / 10 ** 6;
+	
+// 	return new Intl.NumberFormat('en-US', defaultOptions).format(normalizedValue);
+//   };
+  
+//   export const parseUSDCInput = (value: string): bigint => {
+// 	// Convert user input (e.g., "1000.50") to USDC units (with 6 decimals)
+// 	const parsed = parseFloat(value);
+// 	return BigInt(Math.round(parsed * 10 ** 6));
+// };
+
+
+export const formatUSDC = (value: bigint | string | number): string => {
+	if (!value) return "$0.00";
+	
+	// Convert to BigInt if not already
+	const bigIntValue = typeof value === 'string' ? BigInt(value) : BigInt(value.toString());
+	
+	// Use formatUnits from viem for consistent decimal handling
+	const formatted = formatUnits(bigIntValue, 6);
+	
+	return `$${Number(formatted).toLocaleString("en-US", {
+	  minimumFractionDigits: 2,
+	  maximumFractionDigits: 2
+	})}`;
   };

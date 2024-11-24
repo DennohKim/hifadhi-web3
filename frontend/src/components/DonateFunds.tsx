@@ -42,7 +42,6 @@ export function DonateFunds({ onDepositSuccess }: DonateFundsProps) {
   const { wallets } = useWallets();
   const activeWallet = wallets[0]; // Get the first connected wallet
   const address = activeWallet?.address;
-  console.log(address);
   const publicClient = usePublicClient();
   const campaignId = useParams().campaignId;
   const [isApproving, setIsApproving] = useState(false);
@@ -88,13 +87,14 @@ export function DonateFunds({ onDepositSuccess }: DonateFundsProps) {
         "en-US"
       )
     : "$0.00";
+    
 
   const onSubmit = async (data: FormData) => {
     if (!address || !campaignId) return;
 
     try {
       setIsApproving(true);
-      const amount = parseUnits(data.amount, 6); // USDC has 6 decimals
+      const amount = parseUnits(data.amount, 6); 
 
       // First approve USDC spending
       const approvalTx = await approveUSDC({

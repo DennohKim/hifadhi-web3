@@ -14,7 +14,7 @@ import Image from "next/image";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { AnimatedContainer } from "@/components";
 import { UploadButton, UploadDropzone } from "@/lib/uploadthing";
-import { Abi } from "viem";
+import { Abi, parseUnits } from "viem";
 import { usePrivy } from "@privy-io/react-auth";
 import { useSetActiveWallet } from "@privy-io/wagmi";
 import { useWallets } from "@privy-io/react-auth";
@@ -23,6 +23,7 @@ type FormData = {
   name: string;
   description: string;
   walletAddress: string;
+  target: number;
 };
 
 export default function CreateCampaignPage() {
@@ -45,6 +46,7 @@ export default function CreateCampaignPage() {
       name: "",
       description: "",
       walletAddress: "",
+      target: 0,
     },
   });
 
@@ -55,9 +57,11 @@ export default function CreateCampaignPage() {
   const watchedName = watch("name");
   const watchedDescription = watch("description");
   const watchedWalletAddress = watch("walletAddress");
+  const watchedTarget = watch("target");
   const debouncedName = useDebounce(watchedName, 300);
   const debouncedDescription = useDebounce(watchedDescription, 300);
   const debouncedWalletAddress = useDebounce(watchedWalletAddress, 300);
+  const debouncedTarget = useDebounce(watchedTarget, 300);
 
   const contractConfig = {
     address: CONTRACTS.ORGANIZATION_CAMPAIGNS.address,
@@ -78,6 +82,7 @@ export default function CreateCampaignPage() {
     !imageUrl;
 
   const onSubmit = async (data: FormData) => {
+    const target = parseUnits(data.target.toString(), 6);
     if (!authenticated) {
       toast.error("Please connect your wallet first");
       return;
@@ -105,6 +110,7 @@ export default function CreateCampaignPage() {
           debouncedDescription,
           imageUrl,
           debouncedWalletAddress as `0x${string}`,
+          target,
         ],
       });
 
@@ -112,7 +118,7 @@ export default function CreateCampaignPage() {
         description: `Transaction hash: ${hash}`,
       });
 
-      router.push(`/organisations/orgId=${orgId}`);
+      router.push(`/organisations/${orgId}`);
     } catch (error) {
       console.error("Contract error:", error);
       toast.error("Failed to create campaign", {
@@ -186,55 +192,76 @@ export default function CreateCampaignPage() {
                 <span className="text-red-500">Invalid Ethereum address</span>
               )}
             </div>
-
+            <div className="grid gap-3">
+              <Label htmlFor="target">Campaign Target (USDC)</Label>
+              <Input
+                id="target"
+                type="number"
+                step="0.000001" // USDC has 6 decimal places
+                min="0"
+                placeholder="Enter target amount in USDC (e.g., 1000.50)"
+                {...register("target", {
+                  required: true,
+                  min: 0,
+                  validate: (value) =>
+                    value > 0 || "Target must be greater than 0",
+                })}
+              />
+              <span className="text-sm text-muted-foreground">
+                Enter the target amount in USDC (e.g., 1000.50 for $1,000.50)
+              </span>
+              {errors.target?.type === "required" && (
+                <span className="text-red-500">This field is required</span>
+              )}
+            </div>
             <div className="grid gap-3">
               <Label htmlFor="imageUrl">Campaign Image</Label>
               <UploadDropzone
-                    endpoint="videoAndImage"
-                    onClientUploadComplete={(res) => {
-                      if (res?.[0]) setImageUrl(res[0].url);
-                      toast.success("Upload Completed");
-                    }}
-                    onUploadError={(error) => {
-                      toast.error(`ERROR! ${error.message}`);
-                    }}
-                    onUploadBegin={() => {
-                      console.log("upload begin");
-                    }}
-                    appearance={{
-                      container:
-                        "mt-4 border-2 border-dashed border-slate-300 rounded-lg h-32",
-                      label: "text-slate-500",
-                      allowedContent: "text-slate-500 text-sm",
-                      uploadIcon: "text-slate-400",
-                      button:
-                        "bg-blue-500 hover:bg-blue-600 text-white ut-uploading:bg-blue-500/50 px-6",
-                    }}
-                    content={{
-                      label: "Drop your image here or click to browse",
-                      allowedContent: "Images up to 4MB",
-                      button({ ready, isUploading }) {
-                        if (!ready) return "Getting ready...";
-                        if (isUploading) return "Uploading...";
-                        return "Upload";
-                      },
-                    }}
-                  />
+                endpoint="videoAndImage"
+                onClientUploadComplete={(res) => {
+                  if (res?.[0]) setImageUrl(res[0].url);
+                  toast.success("Upload Completed");
+                }}
+                onUploadError={(error) => {
+                  toast.error(`ERROR! ${error.message}`);
+                }}
+                onUploadBegin={() => {
+                  console.log("upload begin");
+                }}
+                appearance={{
+                  container:
+                    "mt-4 border-2 border-dashed border-slate-300 rounded-lg h-32",
+                  label: "text-slate-500",
+                  allowedContent: "text-slate-500 text-sm",
+                  uploadIcon: "text-slate-400",
+                  button:
+                    "bg-blue-500 hover:bg-blue-600 text-white ut-uploading:bg-blue-500/50 px-6",
+                }}
+                content={{
+                  label: "Drop your image here or click to browse",
+                  allowedContent: "Images up to 4MB",
+                  button({ ready, isUploading }) {
+                    if (!ready) return "Getting ready...";
+                    if (isUploading) return "Uploading...";
+                    return "Upload";
+                  },
+                }}
+              />
 
-                  <UploadButton
-                    endpoint="videoAndImage"
-                    onClientUploadComplete={(res) => {
-                      if (res?.[0]) setImageUrl(res[0].url);
-                      toast.success("Upload Completed");
-                    }}
-                    onUploadBegin={() => {
-                      console.log("upload begin");
-                    }}
-                    appearance={{
-                      button: "bg-blue-500 hover:bg-blue-600 text-white px-6",
-                      allowedContent: "text-slate-500 text-sm",
-                    }}
-                  />
+              <UploadButton
+                endpoint="videoAndImage"
+                onClientUploadComplete={(res) => {
+                  if (res?.[0]) setImageUrl(res[0].url);
+                  toast.success("Upload Completed");
+                }}
+                onUploadBegin={() => {
+                  console.log("upload begin");
+                }}
+                appearance={{
+                  button: "bg-blue-500 hover:bg-blue-600 text-white px-6",
+                  allowedContent: "text-slate-500 text-sm",
+                }}
+              />
 
               {imageUrl && (
                 <div className="mt-4">

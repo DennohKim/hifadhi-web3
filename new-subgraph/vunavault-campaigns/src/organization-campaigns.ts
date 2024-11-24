@@ -103,18 +103,28 @@ export function handleOrganizationCreated(
 
 export function handleCampaignCreated(event: CampaignCreatedEvent): void {
   let campaign = new Campaign(event.params.campaignId.toString());
-  let contract = OrganizationCampaigns.bind(event.address);
-  let campaignDetails = contract.getCampaignDetails(event.params.campaignId);
-
+  
+  // Create campaign with event parameters first
   campaign.name = event.params.name;
-  campaign.description = campaignDetails.value1;
   campaign.imageUrl = event.params.imageUrl;
   campaign.walletAddress = event.params.walletAddress;
   campaign.organization = event.params.orgId.toString();
   campaign.totalDeposits = BigInt.fromI32(0);
-  campaign.target = event.params.target; 
   campaign.isActive = true;
   campaign.createdAt = event.block.timestamp;
+
+  // Try to get additional details from contract call
+  let contract = OrganizationCampaigns.bind(event.address);
+  let campaignDetailsResult = contract.try_getCampaignDetails(event.params.campaignId);
+  
+  if (!campaignDetailsResult.reverted) {
+    campaign.description = campaignDetailsResult.value.value1;
+    campaign.target = campaignDetailsResult.value.value6;
+  } else {
+    campaign.description = "";
+    campaign.target = BigInt.fromI32(0);
+  }
+
   campaign.save();
 }
 
