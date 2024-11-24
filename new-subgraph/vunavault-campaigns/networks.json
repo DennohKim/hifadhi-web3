@@ -1,0 +1,8 @@
+{
+  "base-sepolia": {
+    "OrganizationCampaigns": {
+      "address": "0x0D6A8F3bd9c93Eb13283fd9dbD2E52E534Aa7421",
+      "startBlock": 18337357
+    }
+  }
+}

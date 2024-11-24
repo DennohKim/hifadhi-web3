@@ -78,92 +78,100 @@
 //   entity.save()
 // }
 
-
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
   CampaignCreated as CampaignCreatedEvent,
   DepositMade as DepositMadeEvent,
   MemberJoined as MemberJoinedEvent,
   OrganizationCreated as OrganizationCreatedEvent,
-  OrganizationCampaigns
-} from "../generated/OrganizationCampaigns/OrganizationCampaigns"
-import {
-  Campaign,
-  Deposit,
-  Member,
-  Organization
-} from "../generated/schema"
+  OrganizationCampaigns,
+  CampaignTargetReached as CampaignTargetReachedEvent,
+} from "../generated/OrganizationCampaigns/OrganizationCampaigns";
+import { Campaign, Deposit, Member, Organization } from "../generated/schema";
 
-export function handleOrganizationCreated(event: OrganizationCreatedEvent): void {
-  let organization = new Organization(event.params.orgId.toString())
-  organization.name = event.params.name
-  organization.description = event.params.description
-  organization.imageUrl = event.params.imageUrl
-  organization.owner = event.params.owner
-  organization.createdAt = event.block.timestamp
-  organization.save()
+export function handleOrganizationCreated(
+  event: OrganizationCreatedEvent
+): void {
+  let organization = new Organization(event.params.orgId.toString());
+  organization.name = event.params.name;
+  organization.description = event.params.description;
+  organization.imageUrl = event.params.imageUrl;
+  organization.owner = event.params.owner;
+  organization.createdAt = event.block.timestamp;
+  organization.save();
 }
 
 export function handleCampaignCreated(event: CampaignCreatedEvent): void {
-  let campaign = new Campaign(event.params.campaignId.toString())
-  let contract = OrganizationCampaigns.bind(event.address)
-  let campaignDetails = contract.getCampaignDetails(event.params.campaignId)
-  
-  campaign.name = event.params.name
-  campaign.description = campaignDetails.value1
-  campaign.imageUrl = event.params.imageUrl
-  campaign.walletAddress = event.params.walletAddress
-  campaign.organization = event.params.orgId.toString()
-  campaign.totalDeposits = BigInt.fromI32(0)
-  campaign.isActive = true
-  campaign.createdAt = event.block.timestamp
-  campaign.save()
+  let campaign = new Campaign(event.params.campaignId.toString());
+  let contract = OrganizationCampaigns.bind(event.address);
+  let campaignDetails = contract.getCampaignDetails(event.params.campaignId);
+
+  campaign.name = event.params.name;
+  campaign.description = campaignDetails.value1;
+  campaign.imageUrl = event.params.imageUrl;
+  campaign.walletAddress = event.params.walletAddress;
+  campaign.organization = event.params.orgId.toString();
+  campaign.totalDeposits = BigInt.fromI32(0);
+  campaign.target = event.params.target; 
+  campaign.isActive = true;
+  campaign.createdAt = event.block.timestamp;
+  campaign.save();
+}
+
+export function handleCampaignTargetReached(
+  event: CampaignTargetReachedEvent
+): void {
+  let campaign = Campaign.load(event.params.campaignId.toString());
+  if (campaign) {
+    campaign.isActive = false;
+    campaign.save();
+  }
 }
 
 export function handleMemberJoined(event: MemberJoinedEvent): void {
-  let memberId = event.params.member.toHexString()
-  let member = Member.load(memberId)
-  
+  let memberId = event.params.member.toHexString();
+  let member = Member.load(memberId);
+
   if (!member) {
-    member = new Member(memberId)
-    member.address = event.params.member
-    member.organization = event.params.orgId.toString()
-    member.joinedAt = event.block.timestamp
-    member.save()
+    member = new Member(memberId);
+    member.address = event.params.member;
+    member.organization = event.params.orgId.toString();
+    member.joinedAt = event.block.timestamp;
+    member.save();
   }
 }
 
 export function handleDepositMade(event: DepositMadeEvent): void {
-  let depositId = event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  let deposit = new Deposit(depositId)
-  
-  // Get campaign to find orgId
-  let campaign = Campaign.load(event.params.campaignId.toString())
-  if (!campaign) {
-    return // Exit if campaign not found
-  }
-  
-  // Create or load member
-  let memberId = event.params.member.toHexString()
-  let member = Member.load(memberId)
-  if (!member) {
-    member = new Member(memberId)
-    member.address = event.params.member
-    member.organization = campaign.organization // Use campaign's organization
-    member.joinedAt = event.block.timestamp
-    member.save()
-  }
-  
-  deposit.campaign = event.params.campaignId.toString()
-  deposit.donor = memberId
-  deposit.amount = event.params.amount
-  deposit.timestamp = event.params.timestamp
-  deposit.cumulativeAmount = event.params.newTotal
-  deposit.transactionHash = event.transaction.hash
-  deposit.save()
-  
-  // Update campaign total deposits
-  campaign.totalDeposits = campaign.totalDeposits.plus(event.params.amount)
-  campaign.save()
-}
+  let depositId =
+    event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
+  let deposit = new Deposit(depositId);
 
+  // Get campaign to find orgId
+  let campaign = Campaign.load(event.params.campaignId.toString());
+  if (!campaign) {
+    return; // Exit if campaign not found
+  }
+
+  // Create or load member
+  let memberId = event.params.member.toHexString();
+  let member = Member.load(memberId);
+  if (!member) {
+    member = new Member(memberId);
+    member.address = event.params.member;
+    member.organization = campaign.organization; // Use campaign's organization
+    member.joinedAt = event.block.timestamp;
+    member.save();
+  }
+
+  deposit.campaign = event.params.campaignId.toString();
+  deposit.donor = memberId;
+  deposit.amount = event.params.amount;
+  deposit.timestamp = event.params.timestamp;
+  deposit.cumulativeAmount = event.params.newTotal;
+  deposit.transactionHash = event.transaction.hash;
+  deposit.save();
+
+  // Update campaign total deposits
+  campaign.totalDeposits = campaign.totalDeposits.plus(event.params.amount);
+  campaign.save();
+}

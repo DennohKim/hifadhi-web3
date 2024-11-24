@@ -8,18 +8,19 @@ dataSources:
     name: OrganizationCampaigns
     network: base-sepolia
     source:
-      address: "0xAb519cb737495F13ffBE16be584844589D2fB95B"
+      address: "0x0D6A8F3bd9c93Eb13283fd9dbD2E52E534Aa7421"
       abi: OrganizationCampaigns
-      startBlock: 17866983
+      startBlock: 18337357
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - Organization
-        - Campaign
-        - Member
-        - Deposit
+        - CampaignCreated
+        - CampaignTargetReached
+        - DepositMade
+        - MemberJoined
+        - OrganizationCreated
       abis:
         - name: OrganizationCampaigns
           file: ./abis/OrganizationCampaigns.json

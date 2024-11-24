@@ -23,6 +23,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
         address payable walletAddress;
         uint256 orgId;      
         uint256 totalDeposits;
+        uint256 target;     // New field
         bool isActive;
         mapping(address => uint256) memberDeposits;
     }
@@ -68,6 +69,12 @@ contract OrganizationCampaigns is ReentrancyGuard {
         uint256 amount,
         uint256 timestamp,
         uint256 newTotal
+    );
+
+    event CampaignTargetReached(
+        uint256 indexed campaignId,
+        uint256 target,
+        uint256 timestamp
     );
 
     constructor(address _usdcAddress) {
@@ -139,7 +146,8 @@ contract OrganizationCampaigns is ReentrancyGuard {
         string memory _name,
         string memory _description,
         string memory _imageUrl,
-        address payable _walletAddress
+        address payable _walletAddress,
+        uint256 _target
     ) 
         external 
         orgExists(_orgId) 
@@ -149,6 +157,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
         require(_walletAddress != address(0), "Invalid wallet address");
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_imageUrl).length > 0, "Image URL cannot be empty");
+        require(_target > 0, "Target must be greater than 0");
 
         uint256 campaignId = campaignCount;
         Campaign storage campaign = campaigns[campaignId];
@@ -158,6 +167,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
         campaign.imageUrl = _imageUrl;
         campaign.walletAddress = _walletAddress;
         campaign.orgId = _orgId;
+        campaign.target = _target;
         campaign.isActive = true;
 
         emit CampaignCreated(campaignId, _name, _orgId, _walletAddress, _imageUrl);
@@ -210,6 +220,12 @@ contract OrganizationCampaigns is ReentrancyGuard {
 
         campaign.totalDeposits = campaign.totalDeposits + _amount;
         campaign.memberDeposits[msg.sender] = campaign.memberDeposits[msg.sender] + _amount;
+
+        // Check if target is reached
+        if (campaign.totalDeposits >= campaign.target) {
+            campaign.isActive = false;
+            emit CampaignTargetReached(_campaignId, campaign.target, block.timestamp);
+        }
 
         emit DepositMade(
             _campaignId,
@@ -278,6 +294,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
             address walletAddress,
             uint256 orgId,
             uint256 totalDeposits,
+            uint256 target,
             bool isActive
         )
     {
@@ -289,6 +306,7 @@ contract OrganizationCampaigns is ReentrancyGuard {
             campaign.walletAddress,
             campaign.orgId,
             campaign.totalDeposits,
+            campaign.target,
             campaign.isActive
         );
     }

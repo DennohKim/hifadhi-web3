@@ -2,6 +2,7 @@ import { newMockEvent } from "matchstick-as"
 import { ethereum, BigInt, Address } from "@graphprotocol/graph-ts"
 import {
   CampaignCreated,
+  CampaignTargetReached,
   DepositMade,
   MemberJoined,
   OrganizationCreated
@@ -12,8 +13,7 @@ export function createCampaignCreatedEvent(
   name: string,
   orgId: BigInt,
   walletAddress: Address,
-  imageUrl: string,
-  target: BigInt
+  imageUrl: string
 ): CampaignCreated {
   let campaignCreatedEvent = changetype<CampaignCreated>(newMockEvent())
 
@@ -40,14 +40,38 @@ export function createCampaignCreatedEvent(
   campaignCreatedEvent.parameters.push(
     new ethereum.EventParam("imageUrl", ethereum.Value.fromString(imageUrl))
   )
-  campaignCreatedEvent.parameters.push(
+
+  return campaignCreatedEvent
+}
+
+export function createCampaignTargetReachedEvent(
+  campaignId: BigInt,
+  target: BigInt,
+  timestamp: BigInt
+): CampaignTargetReached {
+  let campaignTargetReachedEvent = changetype<CampaignTargetReached>(
+    newMockEvent()
+  )
+
+  campaignTargetReachedEvent.parameters = new Array()
+
+  campaignTargetReachedEvent.parameters.push(
     new ethereum.EventParam(
-      "target",
-      ethereum.Value.fromUnsignedBigInt(target)
+      "campaignId",
+      ethereum.Value.fromUnsignedBigInt(campaignId)
+    )
+  )
+  campaignTargetReachedEvent.parameters.push(
+    new ethereum.EventParam("target", ethereum.Value.fromUnsignedBigInt(target))
+  )
+  campaignTargetReachedEvent.parameters.push(
+    new ethereum.EventParam(
+      "timestamp",
+      ethereum.Value.fromUnsignedBigInt(timestamp)
     )
   )
 
-  return campaignCreatedEvent
+  return campaignTargetReachedEvent
 }
 
 export function createDepositMadeEvent(

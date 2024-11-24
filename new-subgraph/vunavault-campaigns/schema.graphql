@@ -1,0 +1,54 @@
+type CampaignCreated @entity(immutable: true) {
+  id: Bytes!
+  campaignId: BigInt! # uint256
+  name: String! # string
+  orgId: BigInt! # uint256
+  walletAddress: Bytes! # address
+  imageUrl: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CampaignTargetReached @entity(immutable: true) {
+  id: Bytes!
+  campaignId: BigInt! # uint256
+  target: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DepositMade @entity(immutable: true) {
+  id: Bytes!
+  campaignId: BigInt! # uint256
+  member: Bytes! # address
+  amount: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  newTotal: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MemberJoined @entity(immutable: true) {
+  id: Bytes!
+  orgId: BigInt! # uint256
+  member: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OrganizationCreated @entity(immutable: true) {
+  id: Bytes!
+  orgId: BigInt! # uint256
+  name: String! # string
+  owner: Bytes! # address
+  imageUrl: String! # string
+  description: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

@@ -24,15 +24,12 @@ describe("Describe entity assertions", () => {
       "0x0000000000000000000000000000000000000001"
     )
     let imageUrl = "Example string value"
-    let target = BigInt.fromI32(1000000) // 1 USDC with 6 decimals
-    
     let newCampaignCreatedEvent = createCampaignCreatedEvent(
       campaignId,
       name,
       orgId,
       walletAddress,
-      imageUrl,
-      target
+      imageUrl
     )
     handleCampaignCreated(newCampaignCreatedEvent)
   })
@@ -77,12 +74,6 @@ describe("Describe entity assertions", () => {
       "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
       "imageUrl",
       "Example string value"
-    )
-    assert.fieldEquals(
-      "CampaignCreated",
-      "0xa16081f360e3847006db660bae1c6d1b2e17ec2a-1",
-      "target",
-      "1000000"
     )
 
     // More assert options:
